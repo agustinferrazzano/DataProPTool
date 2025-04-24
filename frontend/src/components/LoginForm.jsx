@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 import "../styles/Form.css";
+import "../styles/Botones.css";
 
-function LoginForm(route) {
+function LoginForm({ route }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -27,6 +28,7 @@ function LoginForm(route) {
     };
 
     return (
+        <div>
         <form onSubmit={handleSubmit} className="form-container">
             <h1>Login</h1>
             <input
@@ -48,6 +50,10 @@ function LoginForm(route) {
                 Login
             </button>
         </form>
+        <button className="back-to-home" onClick={() => navigate("/home")}>
+            Cancelar
+        </button>
+        </div>
     );
 }
 

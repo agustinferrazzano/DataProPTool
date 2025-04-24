@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/Form.css";
+import "../styles/Botones.css"; 
 
 function RegisterForm({ route }) {
     const [username, setUsername] = useState("");
@@ -41,6 +42,7 @@ function RegisterForm({ route }) {
     };
 
     return (
+    <div>
         <form onSubmit={handleSubmit} className="form-container">
             <h1>Register</h1>
             <input
@@ -87,7 +89,12 @@ function RegisterForm({ route }) {
                 Register
             </button>
         </form>
-    );
+        <button className="back-to-home" onClick={() => navigate("/home")}>
+            Cancelar
+        </button>
+    </div>
+    
+);
 }
 
 export default RegisterForm;

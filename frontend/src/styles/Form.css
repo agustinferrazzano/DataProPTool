@@ -7,16 +7,17 @@
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
+    max-width: 400px; /* Asegura que el formulario tenga un ancho fijo */
+    width: 100%; /* Asegura que ocupe todo el ancho disponible */
   }
   
   .form-input {
-    width: 90%;
+    width: 100%; /* Asegura que todos los campos ocupen el mismo ancho */
     padding: 10px;
     margin: 10px 0;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Incluye el padding en el ancho total */
   }
   
   .form-button {
