@@ -29,15 +29,16 @@ function App() {
     <>   
       <BrowserRouter>
       <Routes>
-        {/* <Route
+        <Route
           path="/"
           element={
             <ProtectedRoute>
               <HomeUser />
             </ProtectedRoute>
           }
-        /> */}
+        />
         <Route path="/HomeUser" element={<HomeUser />} />
+        <Route path="/Home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
