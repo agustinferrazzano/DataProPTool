@@ -1,0 +1,119 @@
+/* Encabezado */
+.homeuser-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Asegura que el encabezado ocupe todo el ancho */
+    box-sizing: border-box; /* Incluye el padding en el ancho total */
+    position: relative; /* Asegura que los elementos posicionados dentro del encabezado se mantengan dentro de sus límites */
+}
+
+/* Título del encabezado */
+.homeuser-header h1 {
+    margin: 0;
+    font-size: 24px;
+    flex: 1; /* Permite que el título ocupe el espacio disponible */
+    text-align: left; /* Alinea el título a la izquierda */
+}
+
+/* Dropdown */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-button {
+    background-color: white;
+    color: #007bff;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    white-space: nowrap; /* Evita que el texto del botón se desborde */
+}
+
+.dropdown-button:hover {
+    background-color: #0056b3;
+    color: white;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%; /* Asegura que el menú se despliegue justo debajo del botón */
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 150px; /* Asegura un ancho mínimo para el menú */
+}
+
+/* Elementos del menú desplegable */
+.dropdown-item {
+    display: block;
+    padding: 10px 15px;
+    background-color: white;
+    color: #333;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.dropdown-item:hover {
+    background-color: #f4f4f4;
+}
+
+/* Cuerpo */
+.homeuser-main {
+    display: flex;
+    flex-direction: column; /* Asegura que los elementos estén en columnas */
+    align-items: center; /* Centra los elementos horizontalmente */
+    gap: 20px; /* Espaciado entre los grupos de botones */
+    padding: 20px;
+}
+
+/* Contenedor para los botones */
+.button-group {
+    display: flex;
+    justify-content: center; /* Centra los botones horizontalmente */
+    align-items: center; /* Alinea los botones verticalmente */
+    gap: 15px; /* Espaciado entre los botones */
+    flex-wrap: wrap; /* Permite que los botones se ajusten si no caben en una fila */
+    width: 100%; /* Asegura que el contenedor ocupe todo el ancho disponible */
+    max-width: 800px; /* Limita el ancho máximo del contenedor */
+    margin: 0 auto; /* Centra el contenedor horizontalmente */
+    box-sizing: border-box; /* Incluye el padding en el ancho total */
+}
+
+/* Botones principales */
+.main-button {
+    padding: 15px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    text-align: center;
+    white-space: nowrap; /* Evita que el texto se ajuste en varias líneas */
+    word-wrap: break-word; /* Asegura que las palabras largas se dividan si es necesario */
+    width: 150px; /* Ajusta el ancho de los botones */
+    height: 50px; /* Ajusta la altura de los botones */
+    flex-shrink: 0; /* Evita que los botones se reduzcan si no hay suficiente espacio */
+}
+
+.main-button:hover {
+    background-color: #0056b3;
+}
+
+/* Botón adicional */
+.main-button-bottom {
+    margin-top: 20px; /* Espaciado adicional desde los botones superiores */
+}

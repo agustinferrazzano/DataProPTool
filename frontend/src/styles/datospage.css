@@ -1,0 +1,142 @@
+/* Contenedor principal */
+.datosorg-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Limita la altura al 100% de la pantalla */
+    justify-content: flex-start; /* Alinea los elementos hacia la parte superior */
+    align-items: center;
+    margin: 0; /* Elimina márgenes */
+    padding: 0; /* Elimina paddings */
+    overflow: hidden; /* Evita que el contenido desborde */
+    background-color: #f9f9f9;
+}
+
+/* Encabezado */
+.datosorg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.datosorg-header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.homeuser-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 15px 20px;
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.homeuser-header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-button {
+    background-color: white;
+    color: #007bff;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.dropdown-button:hover {
+    background-color: #0056b3;
+    color: white;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 10px 15px;
+    background-color: white;
+    color: #333;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.dropdown-item:hover {
+    background-color: #f4f4f4;
+}
+
+/* Cuerpo principal */
+.datosorg-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra los botones horizontalmente */
+    gap: 15px; /* Espaciado entre los botones */
+    width: 100%;
+    max-width: 600px; /* Aumenta el ancho máximo del contenedor */
+    margin-top: 20px; /* Ajusta la distancia desde el encabezado */
+    padding: 20px;
+}
+
+/* Botones principales */
+.main-button {
+    padding: 15px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    text-align: center;
+    white-space: normal;
+    word-wrap: break-word;
+    width: 100%; /* Asegura que los botones ocupen todo el ancho del contenedor */
+    max-width: 450px; /* Limita el ancho máximo de los botones */
+}
+
+.main-button:hover {
+    background-color: #0056b3;
+}
+
+/* Botón para volver */
+.back-to-home {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px; /* Ajusta el tamaño del botón */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px; /* Cambiado a bordes ligeramente redondeados */
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease-in-out;
+    text-align: center;
+}
+
+.back-to-home:hover {
+    background-color: #0056b3;
+}
