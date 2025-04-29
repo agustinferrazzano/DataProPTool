@@ -3,6 +3,7 @@ import "../styles/ControlesPage.css";
 import "../styles/Botones.css"; 
 import { useNavigate } from "react-router-dom";
 import api from "../api"; 
+import { useEffect } from "react";
 
 function ControlesPage() {
     const [policyName, setPolicyName] = useState("");
@@ -13,6 +14,8 @@ function ControlesPage() {
     const handleFileChange = (event) => {
         setFile(event.target.files[0]);
     };
+
+
 
     const handlegetControls = () => {
         api
@@ -25,6 +28,10 @@ function ControlesPage() {
                 console.error("Error fetching controls:", error);
             });
     };
+
+    useEffect(() => {
+        handlegetControls();
+    }, []);
 
     const handleSubmit = (event) => {
         event.preventDefault();
