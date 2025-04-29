@@ -2,10 +2,11 @@ import { useState } from "react";
 import "../styles/ControlesPage.css";
 import "../styles/Botones.css"; 
 import { useNavigate } from "react-router-dom";
+import api from "../api"; 
 
 function ControlesPage() {
     const [policyName, setPolicyName] = useState("");
-    const [file, setFile] = useState(null);
+    const [politicaDescription, setDescripcion] = useState("");
     const [controls, setControls] = useState([]); // Lista de controles cargados
     const navigate = useNavigate();
 
@@ -13,14 +14,34 @@ function ControlesPage() {
         setFile(event.target.files[0]);
     };
 
+    const handlegetControls = () => {
+        api
+            .get("/api/controles/")
+            .then((response) => {
+                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
+                setControls(response.data); // Asegúrate de que sea un array
+            })
+            .catch((error) => {
+                console.error("Error fetching controls:", error);
+            });
+    };
+
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (policyName && file) {
-            const newControl = { name: policyName, fileName: file.name };
-            setControls([...controls, newControl]); // Agrega el nuevo control a la lista
-            setPolicyName(""); // Limpia el campo de texto
-            setFile(null); // Limpia el archivo seleccionado
-            alert("Política y archivo cargados correctamente.");
+        if (policyName && politicaDescription) {
+            const newControl = { nombre: policyName, tipo: "politica", descripcion: politicaDescription };
+            api
+                .post("/api/controles/", newControl).then((response) => {
+                     if (response.status === 201) {
+                        setPolicyName("");
+                        setDescripcion("");
+                        handlegetControls();
+                        alert("Política y archivo cargados correctamente.");
+                        
+                    } else {
+                        alert(error);
+                    }
+                })
         } else {
             alert("Por favor, completa todos los campos.");
         }
@@ -33,13 +54,17 @@ function ControlesPage() {
             {/* Lista de controles */}
             <div className="controls-list">
                 <h2>Controles Cargados</h2>
-                <ul>
-                    {controls.map((control, index) => (
-                        <li key={index}>
-                            {control.name} - {control.fileName}
-                        </li>
-                    ))}
-                </ul>
+                {controls.length > 0 ? (
+                    <ul>
+                        {controls.map((control, index) => (
+                            <li key={index}>
+                                {control.nombre} - {control.descripcion}
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No hay controles cargados.</p>
+                )}
             </div>
             
             <form className="controles-form" onSubmit={handleSubmit}>
@@ -54,13 +79,14 @@ function ControlesPage() {
                     required
                 />
 
-                <label htmlFor="fileUpload">Archivo de la Política:</label>
-                <input
-                    type="file"
-                    id="fileUpload"
-                    onChange={handleFileChange}
-                    required
-                />
+                    <label htmlFor="politicaDescription">Descripción de la Politica:</label>
+                    <textarea
+                        id="politicaDescription"
+                        value={politicaDescription}
+                        onChange={(e) => setDescripcion(e.target.value)}
+                        placeholder="Ingresa una descripción del departamento"
+                        required
+                    ></textarea>
 
                 <button type="submit" className="submit-button">
                     Cargar
