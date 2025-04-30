@@ -2,12 +2,14 @@ import { useState } from "react";
 import "../styles/FormPage.css";
 import { useNavigate } from "react-router-dom";
 import "../styles/Botones.css";
+import api from "../api"; 
+import { useEffect } from "react";
 
 function RepositorioPage() {
     const [repositories, setRepositories] = useState([]); // Lista de repositorios cargados
     const [repoName, setRepoName] = useState("");
     const [repoDescription, setRepoDescription] = useState("");
-    const [repoFile, setRepoFile] = useState(null);
+    // const [repoFile, setRepoFile] = useState(null);
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
     const navigate = useNavigate(); // Hook para manejar la navegación
 
@@ -15,20 +17,42 @@ function RepositorioPage() {
         setRepoFile(event.target.files[0]);
     };
 
+    const handlegetRepos = () => {
+        api
+            .get("/api/repositorios/")
+            .then((response) => {
+                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
+                setRepositories(response.data); // Asegúrate de que sea un array
+            })
+            .catch((error) => {
+                console.error("Error fetching controls:", error);
+            });
+    };
+
+    useEffect(() => {
+        handlegetRepos();
+    }, []);
+
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (repoName && repoDescription && repoFile) {
+        if (repoName && repoDescription ) { //&& repoFile
             const newRepository = {
-                name: repoName,
-                description: repoDescription,
-                fileName: repoFile.name,
+                nombre: repoName,
+                tipo: "repositorio",
+                descripcion: repoDescription,
             };
-            setRepositories([...repositories, newRepository]); // Agrega el nuevo repositorio a la lista
-            setRepoName(""); // Limpia el campo de nombre
-            setRepoDescription(""); // Limpia el campo de descripción
-            setRepoFile(null); // Limpia el archivo seleccionado
-            setShowForm(false); // Oculta el formulario después de cargar
-            alert("Repositorio cargado correctamente.");
+            api
+                .post("/api/repositorios/", newRepository).then((response) => {
+                     if (response.status === 201) {
+                        setRepoName("");
+                        setRepoDescription("");
+                        handlegetRepos();
+                        alert("Repositorio y archivo cargados correctamente.");
+                        
+                    } else {
+                        alert(error);
+                    }
+                })
         } else {
             alert("Por favor, completa todos los campos.");
         }
@@ -45,10 +69,11 @@ function RepositorioPage() {
                         {repositories.map((repo, index) => (
                             <li key={index} className="item">
                                 <div>
-                                    <strong>{repo.name}</strong>
-                                    <p>{repo.description}</p>
+                                    <strong>{repo.nombre}</strong>
+                                    <p>{repo.id} {repo.descripcion}</p>
+                                    
                                 </div>
-                                <span>{repo.fileName}</span>
+                                
                             </li>
                         ))}
                     </ul>
@@ -85,13 +110,13 @@ function RepositorioPage() {
                         required
                     ></textarea>
 
-                    <label htmlFor="repoFile">Documento:</label>
+                    {/* <label htmlFor="repoFile">Documento:</label>
                     <input
                         type="file"
                         id="repoFile"
                         onChange={handleFileChange}
                         required
-                    />
+                    /> */}
 
                     <button type="submit" className="submit-button">
                         Cargar

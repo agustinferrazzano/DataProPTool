@@ -29,26 +29,18 @@ function App() {
     <>   
       <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <HomeUser />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/HomeUser" element={<HomeUser />} />
+        <Route path="/" element={<ProtectedRoute> <HomeUser /></ProtectedRoute>}/>
         <Route path="/Home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
-        <Route path="/datos-org" element={<DatosOrgPage />} />
-        <Route path="/controles" element={<ControlesPage />} />
-        <Route path="/repositorio" element={<RepositorioPage />} />
-        <Route path="/sistemas" element={<SistemasPage/>} />
-        <Route path="/procesos" element={<ProcesosPage/>} />
-        <Route path="/stakeholders" element={<StakeholderPage/>} />
-        <Route path="/departamentos" element={<DepartamentosPage/>} />
+        <Route path="/datos-org" element={<ProtectedRoute><DatosOrgPage /></ProtectedRoute>} />
+        <Route path="/controles" element={<ProtectedRoute><ControlesPage /></ProtectedRoute>} />
+        <Route path="/repositorio" element={<ProtectedRoute><RepositorioPage /></ProtectedRoute>} />
+        <Route path="/sistemas" element={<ProtectedRoute><SistemasPage/></ProtectedRoute>} />
+        <Route path="/procesos" element={<ProtectedRoute><ProcesosPage/></ProtectedRoute>} />
+        <Route path="/stakeholders" element={<ProtectedRoute><StakeholderPage/></ProtectedRoute>} />
+        <Route path="/departamentos" element={<ProtectedRoute><DepartamentosPage/></ProtectedRoute>} />
         <Route path="*" element={<NotFound />}></Route>
       </Routes>
     </BrowserRouter>

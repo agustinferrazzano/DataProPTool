@@ -16,7 +16,6 @@ function ControlesPage() {
     };
 
 
-
     const handlegetControls = () => {
         api
             .get("/api/controles/")

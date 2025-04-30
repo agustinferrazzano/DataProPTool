@@ -62,7 +62,7 @@ function DatosOrgPage() {
             </main>
 
             {/* Botón para volver */}
-            <button className="back-to-home" onClick={() => navigate("/HomeUser")}>
+            <button className="back-to-home" onClick={() => navigate("/")}>
                 Volver
             </button>
         </div>

@@ -2,31 +2,74 @@ import { useState } from "react";
 import "../styles/FormPage.css";
 import "../styles/Botones.css";
 import { useNavigate } from "react-router-dom";
+import api from "../api"; 
+import { useEffect } from "react";
 
 function SistemasPage() {
     const [repositories, setRepositories] = useState([]); // Lista de repositorios cargados
-    const [selectedRepo, setSelectedRepo] = useState(""); // Repositorio seleccionado
+    const [selectedRepo, setSelectedRepo] = useState([]); // Cambia de string a array
     const [systemName, setSystemName] = useState(""); // Nombre del sistema
     const [systemDescription, setSystemDescription] = useState(""); // Descripción del sistema
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
     const navigate = useNavigate(); // Hook para manejar la navegación
+    const [system, setSistemas] = useState([]);
 
-    const handleRepoChange = (event) => {
-        setSelectedRepo(event.target.value); // Actualiza el repositorio seleccionado
+    const handlegetSistemas = () => {
+        api
+            .get("/api/sistemas/")
+            .then((response) => {
+                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
+                setSistemas(response.data); // Asegúrate de que sea un array
+            })
+            .catch((error) => {
+                console.error("Error fetching controls:", error);
+            });
     };
 
-    const handleFileChange = (event) => {
-        setRepoFile(event.target.files[0]);
+    useEffect(() => {
+        handlegetSistemas();
+    }, []);
+
+    const handlegetRepos = () => {
+        api
+            .get("/api/repositorios/")
+            .then((response) => {
+                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
+                setRepositories(response.data); // Asegúrate de que sea un array
+            })
+            .catch((error) => {
+                console.error("Error fetching controls:", error);
+            });
     };
+
+    useEffect(() => {
+        handlegetRepos();
+    }, []);
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (selectedRepo && systemName && systemDescription) {
-            alert(`Sistema cargado correctamente:\nNombre: ${systemName}\nDescripción: ${systemDescription}\nRepositorio: ${selectedRepo}`);
-            setSystemName(""); // Limpia el campo de nombre
-            setSystemDescription(""); // Limpia el campo de descripción
-            setSelectedRepo(""); // Limpia el repositorio seleccionado
-            setShowForm(false); // Oculta el formulario después de cargar
+        if (systemName && systemDescription ) { //&& repoFile
+            const newSystem = {
+                nombre: systemName,
+                tipo: "Sistema",
+                descripcion: systemDescription,
+                repositorio_ids: selectedRepo,  
+            };
+            console.log("Datos enviados:", newSystem);
+            
+            api
+                .post("/api/sistemas/", newSystem).then((response) => {
+                     if (response.status === 201) {
+                        setSystemName("");
+                        setSystemDescription("");
+                        setSelectedRepo([]); // Limpia el estado de selectedRepo
+                        handlegetSistemas();
+                        alert("Sistemas y archivo cargados correctamente.");
+                        
+                    } else {
+                        alert(error);
+                    }
+                })
         } else {
             alert("Por favor, completa todos los campos.");
         }
@@ -38,15 +81,18 @@ function SistemasPage() {
 
             <div className="items-list">
                 <h2>Sistemas Cargados</h2>
-                {repositories.length > 0 ? (
+                {system.length > 0 ? (
                     <ul>
-                        {repositories.map((repo, index) => (
+                        {system.map((sistema, index) => (
                             <li key={index} className="item">
                                 <div>
-                                    <strong>{repo.name}</strong>
-                                    <p>{repo.description}</p>
+                                    <strong>{sistema.nombre}</strong>
+                                    <p>{sistema.descripcion}</p>
+                                    <p>
+                                        Repositorios:{" "}
+                                        {sistema.repositorio.map((repo) => repo.nombre).join(", ")}
+                                    </p>
                                 </div>
-                                <span>{repo.fileName}</span>
                             </li>
                         ))}
                     </ul>
@@ -83,30 +129,27 @@ function SistemasPage() {
                         required
                     ></textarea>
 
-                    <label htmlFor="repoFile">Documento:</label>
-                    <input
-                        type="file"
-                        id="repoFile"
-                        onChange={handleFileChange}
-                        required
-                    />
-
-                    <label htmlFor="repoSelect">Seleccionar Repositorio:</label>
-                    <select
-                        id="repoSelect"
-                        value={selectedRepo}
-                        onChange={handleRepoChange}
-                        required
-                    >
-                        <option value="" disabled>
-                            Selecciona un repositorio
-                        </option>
-                        {repositories.map((repo, index) => (
-                            <option key={index} value={repo.name}>
-                                {repo.name}
-                            </option>
+                    <label>Seleccionar Repositorios:</label>
+                    <div className="checkbox-group">
+                        {repositories.map((repo) => (
+                            <div key={repo.id} className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    id={`repo-${repo.id}`}
+                                    value={repo.id}
+                                    checked={selectedRepo.includes(repo.id)} // Marca el checkbox si el ID está en selectedRepo
+                                    onChange={(e) => {
+                                        if (e.target.checked) { 
+                                            setSelectedRepo([...selectedRepo, repo.id]);
+                                        } else {
+                                            setSelectedRepo(selectedRepo.filter((id) => id !== repo.id));
+                                        }
+                                    }}
+                                />
+                                <label htmlFor={`repo-${repo.id}`}>{repo.nombre}</label>
+                            </div>
                         ))}
-                    </select>
+                    </div>
 
                     <button type="submit" className="submit-button">
                         Cargar Sistema

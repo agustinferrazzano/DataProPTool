@@ -2,33 +2,75 @@ import { useState } from "react";
 import "../styles/FormPage.css";
 import "../styles/Botones.css";
 import { useNavigate } from "react-router-dom";
+import api from "../api"; 
+import { useEffect } from "react";
 
 function ProcesosPage() {
-    const [systems, setSystems] = useState([]); // Lista de sistemas cargados
-    const [selectedSystem, setSelectedSystem] = useState(""); // Sistema seleccionado
+    const [systems, setSistemas] = useState([]); 
+    const [process, setProcess] = useState([]); 
+    const [selectedSystem, setSelectedSystem] = useState([]); 
     const [processName, setProcessName] = useState(""); // Nombre del proceso
     const [processDescription, setProcessDescription] = useState(""); // Descripción del proceso
-    const [processFile, setProcessFile] = useState(null); // Archivo del proceso
+    // const [processFile, setProcessFile] = useState(null); // Archivo del proceso
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
     const navigate = useNavigate(); // Hook para manejar la navegación
 
-    const handleSystemChange = (event) => {
-        setSelectedSystem(event.target.value); // Actualiza el sistema seleccionado
+    const handlegetSistemas = () => {
+        api
+            .get("/api/sistemas/")
+            .then((response) => {
+                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
+                setSistemas(response.data); // Asegúrate de que sea un array
+            })
+            .catch((error) => {
+                console.error("Error fetching controls:", error);
+            });
     };
 
-    const handleFileChange = (event) => {
-        setProcessFile(event.target.files[0]); // Actualiza el archivo seleccionado
+    useEffect(() => {
+        handlegetSistemas();
+    }, []);
+
+    const handlegetProcesos = () => {
+        api
+            .get("/api/procesos/")
+            .then((response) => {
+                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
+                setProcess(response.data); // Asegúrate de que sea un array
+            })
+            .catch((error) => {
+                console.error("Error fetching controls:", error);
+            });
     };
+
+    useEffect(() => {
+        handlegetProcesos();
+    }, []);
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (selectedSystem && processName && processDescription && processFile) {
-            alert(`Proceso cargado correctamente:\nNombre: ${processName}\nDescripción: ${processDescription}\nSistema: ${selectedSystem}`);
-            setProcessName(""); // Limpia el campo de nombre
-            setProcessDescription(""); // Limpia el campo de descripción
-            setSelectedSystem(""); // Limpia el sistema seleccionado
-            setProcessFile(null); // Limpia el archivo seleccionado
-            setShowForm(false); // Oculta el formulario después de cargar
+        if (processName && processDescription ) { //&& repoFile
+            const newProcess = {
+                nombre: processName,
+                tipo: "Proceso de negocio",
+                descripcion: processDescription,
+                sistema_ids: selectedSystem,  
+            };
+            console.log("Datos enviados:", newProcess);
+            
+            api
+                .post("/api/procesos/", newProcess).then((response) => {
+                     if (response.status === 201) {
+                        setProcessName("");
+                        setProcessDescription("");
+                        setSelectedSystem([]); // Limpia el estado de selectedRepo
+                        handlegetProcesos();
+                        alert("Sistemas y archivo cargados correctamente.");
+                        
+                    } else {
+                        alert(error);
+                    }
+                })
         } else {
             alert("Por favor, completa todos los campos.");
         }
@@ -39,22 +81,27 @@ function ProcesosPage() {
             <h1>Gestión de Procesos Organizacionales</h1>
 
             <div className="items-list">
-                <h2>Sistemas Cargados</h2>
-                {systems.length > 0 ? (
+                <h2>Procesos Cargados</h2>
+                {process.length > 0 ? (
                     <ul>
-                        {systems.map((system, index) => (
+                        {process.map((proces, index) => (
                             <li key={index} className="item">
                                 <div>
-                                    <strong>{system.name}</strong>
-                                    <p>{system.description}</p>
+                                    <strong>{proces.nombre}</strong>
+                                    <p>{proces.descripcion}</p>
+                                    <p>
+                                        Sistemas:{" "}
+                                        {proces.sistema.map((sistema) => sistema.nombre).join(", ")}
+                                    </p>
                                 </div>
-                                <span>{system.fileName}</span>
+                                
                             </li>
                         ))}
                     </ul>
                 ) : (
-                    <p>No hay sistemas cargados.</p>
+                    <p>No hay Procesos cargados.</p>
                 )}
+                
                 <button
                     className="show-form-button"
                     onClick={() => setShowForm(!showForm)}
@@ -85,30 +132,35 @@ function ProcesosPage() {
                         required
                     ></textarea>
 
-                    <label htmlFor="processFile">Documento:</label>
+                    {/* <label htmlFor="processFile">Documento:</label>
                     <input
                         type="file"
                         id="processFile"
                         onChange={handleFileChange}
                         required
-                    />
+                    /> */}
 
-                    <label htmlFor="systemSelect">Seleccionar Sistema:</label>
-                    <select
-                        id="systemSelect"
-                        value={selectedSystem}
-                        onChange={handleSystemChange}
-                        required
-                    >
-                        <option value="" disabled>
-                            Selecciona un sistema
-                        </option>
-                        {systems.map((system, index) => (
-                            <option key={index} value={system.name}>
-                                {system.name}
-                            </option>
+                    <label>Seleccionar Repositorios:</label>
+                    <div className="checkbox-group">
+                        {systems.map((system) => (
+                            <div key={system.id} className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    id={`sistema-${system.id}`}
+                                    value={system.id}
+                                    checked={selectedSystem.includes(system.id)} // Marca el checkbox si el ID está en selectedRepo
+                                    onChange={(e) => {
+                                        if (e.target.checked) { 
+                                            setSelectedSystem([...selectedSystem, system.id]);
+                                        } else {
+                                            setSelectedSystem(selectedSystem.filter((id) => id !== system.id));
+                                        }
+                                    }}
+                                />
+                                <label htmlFor={`sistema-${system.id}`}>{system.nombre}</label>
+                            </div>
                         ))}
-                    </select>
+                    </div>
 
                     <button type="submit" className="submit-button">
                         Cargar Proceso

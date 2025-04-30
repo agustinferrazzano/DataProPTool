@@ -2,33 +2,79 @@ import { useState } from "react";
 import "../styles/FormPage.css";
 import "../styles/Botones.css";
 import { useNavigate } from "react-router-dom";
+import api from "../api"; 
+import { useEffect } from "react";
 
 function StakeholderPage() {
-    const [processes, setProcesses] = useState([]); // Lista de procesos cargados
-    const [selectedProcess, setSelectedProcess] = useState(""); // Proceso seleccionado
+    const [processes, setProcess] = useState([]); // Lista de procesos cargados
+    const [stakeholders, setStakeholder] = useState([]); // Lista de procesos cargados
+    const [selectedProcess, setSelectedProcess] = useState([]); // Proceso seleccionado
     const [roleName, setRoleName] = useState(""); // Nombre del cargo
     const [roleDescription, setRoleDescription] = useState(""); // Descripción del cargo
     const [roleFile, setRoleFile] = useState(null); // Archivo del cargo
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
     const navigate = useNavigate(); // Hook para manejar la navegación
 
-    const handleProcessChange = (event) => {
-        setSelectedProcess(event.target.value); // Actualiza el proceso seleccionado
+    const handlegetStakeholder = () => {
+        api
+            .get("/api/stakeholders/")
+            .then((response) => {
+                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
+                setStakeholder(response.data); // Asegúrate de que sea un array
+            })
+            .catch((error) => {
+                console.error("Error fetching controls:", error);
+            });
     };
 
-    const handleFileChange = (event) => {
-        setRoleFile(event.target.files[0]); // Actualiza el archivo seleccionado
+    useEffect(() => {
+        handlegetStakeholder();
+    }, []);
+
+    const handlegetProcesos = () => {
+        api
+            .get("/api/procesos/")
+            .then((response) => {
+                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
+                setProcess(response.data); // Asegúrate de que sea un array
+            })
+            .catch((error) => {
+                console.error("Error fetching controls:", error);
+            });
     };
+
+    useEffect(() => {
+        handlegetProcesos();
+    }, []);
+    
+    // const handleFileChange = (event) => {
+    //     setRoleFile(event.target.files[0]); // Actualiza el archivo seleccionado
+    // };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (selectedProcess && roleName && roleDescription && roleFile) {
-            alert(`Cargo cargado correctamente:\nNombre: ${roleName}\nDescripción: ${roleDescription}\nProceso: ${selectedProcess}`);
-            setRoleName(""); // Limpia el campo de nombre
-            setRoleDescription(""); // Limpia el campo de descripción
-            setSelectedProcess(""); // Limpia el proceso seleccionado
-            setRoleFile(null); // Limpia el archivo seleccionado
-            setShowForm(false); // Oculta el formulario después de cargar
+        if (roleName && roleDescription ) { //&& repoFile
+            const newRole = {
+                nombre: roleName,
+                tipo: "stakeholder",
+                descripcion_rol: roleDescription,
+                procesos_ids: selectedProcess,  
+            };
+            console.log("Datos enviados:", newRole);
+            
+            api
+                .post("/api/stakeholders/", newRole).then((response) => {
+                     if (response.status === 201) {
+                        setRoleName("");
+                        setRoleDescription("");
+                        setSelectedProcess([]); // Limpia el estado de selectedRepo
+                        handlegetStakeholder();
+                        alert("Sistemas y archivo cargados correctamente.");
+                        
+                    } else {
+                        alert(error);
+                    }
+                })
         } else {
             alert("Por favor, completa todos los campos.");
         }
@@ -39,22 +85,27 @@ function StakeholderPage() {
             <h1>Gestión de Cargos Organizacionales</h1>
 
             <div className="items-list">
-                <h2>Stakeholders Cargados</h2>
-                {processes.length > 0 ? (
+                <h2>Stakeholder Cargados</h2>
+                {stakeholders.length > 0 ? (
                     <ul>
-                        {processes.map((process, index) => (
+                        {stakeholders.map((role, index) => (
                             <li key={index} className="item">
                                 <div>
-                                    <strong>{process.name}</strong>
-                                    <p>{process.description}</p>
+                                    <strong>{role.nombre}</strong>
+                                    <p>{role.descripcion}</p>
+                                    <p>
+                                        Sistemas:{" "}
+                                        {role.procesos.map((proceso) => proceso.nombre).join(", ")}
+                                    </p>
                                 </div>
-                                <span>{process.fileName}</span>
+                                
                             </li>
                         ))}
                     </ul>
                 ) : (
-                    <p>No hay procesos cargados.</p>
+                    <p>No hay Stakehodlers cargados.</p>
                 )}
+
                 <button
                     className="show-form-button"
                     onClick={() => setShowForm(!showForm)}
@@ -85,30 +136,35 @@ function StakeholderPage() {
                         required
                     ></textarea>
 
-                    <label htmlFor="roleFile">Documento:</label>
+                    {/* <label htmlFor="roleFile">Documento:</label>
                     <input
                         type="file"
                         id="roleFile"
                         onChange={handleFileChange}
                         required
-                    />
+                    /> */}
 
-                    <label htmlFor="processSelect">Seleccionar Proceso:</label>
-                    <select
-                        id="processSelect"
-                        value={selectedProcess}
-                        onChange={handleProcessChange}
-                        required
-                    >
-                        <option value="" disabled>
-                            Selecciona un proceso
-                        </option>
-                        {processes.map((process, index) => (
-                            <option key={index} value={process.name}>
-                                {process.name}
-                            </option>
+                    <label>Seleccionar Proceos que realiza el Stakeholder:</label>
+                    <div className="checkbox-group">
+                        {processes.map((proceso) => (
+                            <div key={proceso.id} className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    id={`proceso-${proceso.id}`}
+                                    value={proceso.id}
+                                    checked={selectedProcess.includes(proceso.id)} // Marca el checkbox si el ID está en selectedRepo
+                                    onChange={(e) => {
+                                        if (e.target.checked) { 
+                                            setSelectedProcess([...selectedProcess, proceso.id]);
+                                        } else {
+                                            setSelectedProcess(selectedProcess.filter((id) => id !== proceso.id));
+                                        }
+                                    }}
+                                />
+                                <label htmlFor={`proceso-${proceso.id}`}>{proceso.nombre}</label>
+                            </div>
                         ))}
-                    </select>
+                    </div>
 
                     <button type="submit" className="submit-button">
                         Cargar Cargo
