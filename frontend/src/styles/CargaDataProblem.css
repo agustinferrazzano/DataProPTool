@@ -1,0 +1,64 @@
+.data-problem-form-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.data-problem-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.data-problem-form label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.data-problem-form input,
+.data-problem-form textarea,
+.data-problem-form select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+}
+
+.submit-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}
+
+.multi-select {
+    margin-bottom: 20px;
+}
+
+.multi-select .select__control {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.multi-select .select__menu {
+    z-index: 1000; /* Asegúrate de que el menú se muestre correctamente */
+}

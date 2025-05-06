@@ -6,6 +6,7 @@ from rest_framework import status
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
+from rest_framework.viewsets import ViewSet
 from .models import RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento
 from .serializers import (
     RepositorioSistemaSerializer,
@@ -13,8 +14,42 @@ from .serializers import (
     ControlSerializer,
     ProcesoNegocioSerializer,
     StakeholderSerializer,
-    DepartamentoSerializer
+    DepartamentoSerializer,
+    DataProblemSerializer,
 )
+
+
+class DataProblemViewSet(viewsets.ModelViewSet):
+    serializer_class = DataProblemSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return DataProblemSerializer.objects.filter(organizacion=self.request.user.org_profile)
+
+
+class TodasLasFuentesViewSet(ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        # Lista de modelos y serializers
+        fuentes = [
+            (RepositorioSistema, RepositorioSistemaSerializer),
+            (SistemaInformacion, SistemaInformacionSerializer),
+            (Control, ControlSerializer),
+            (ProcesoNegocio, ProcesoNegocioSerializer),
+            (Stakeholder, StakeholderSerializer),
+            (Departamento, DepartamentoSerializer),
+        ]
+
+        # Filtrar por organización del usuario autenticado
+        data = []
+        for model, serializer_class in fuentes:
+            instances = model.objects.filter(organizacion=request.user.org_profile)
+            serialized = serializer_class(instances, many=True)
+            data.extend(serialized.data)
+
+        return Response(data)
+
 
 class RepositorioSistemaViewSet(viewsets.ModelViewSet):
     serializer_class = RepositorioSistemaSerializer
@@ -23,12 +58,14 @@ class RepositorioSistemaViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return RepositorioSistema.objects.filter(organizacion=self.request.user.org_profile)
 
+
 class SistemaInformacionViewSet(viewsets.ModelViewSet):
     serializer_class = SistemaInformacionSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return SistemaInformacion.objects.filter(organizacion=self.request.user.org_profile)
+
 
 class ControlViewSet(viewsets.ModelViewSet):
     serializer_class = ControlSerializer
@@ -37,12 +74,14 @@ class ControlViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Control.objects.filter(organizacion=self.request.user.org_profile)
 
+
 class ProcesoNegocioViewSet(viewsets.ModelViewSet):
     serializer_class = ProcesoNegocioSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return ProcesoNegocio.objects.filter(organizacion=self.request.user.org_profile)
+
 
 class StakeholderViewSet(viewsets.ModelViewSet):
     serializer_class = StakeholderSerializer
@@ -51,12 +90,14 @@ class StakeholderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Stakeholder.objects.filter(organizacion=self.request.user.org_profile)
 
+
 class DepartamentoViewSet(viewsets.ModelViewSet):
     serializer_class = DepartamentoSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Departamento.objects.filter(organizacion=self.request.user.org_profile)
+
 
 class RegisterUserView(APIView):
     permission_classes = []  # Permitir acceso sin autenticación

@@ -1,6 +1,18 @@
 from django.contrib.auth.models import User
+from rest_polymorphic.serializers import PolymorphicSerializer
 from rest_framework import serializers
-from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento
+from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem
+
+# Serializer base para las fuentes
+class FuenteBaseSerializer(serializers.ModelSerializer):
+    tipo_fuente = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Fuente
+        fields = ['id', 'nombre', 'tipo', 'organizacion', 'tipo_fuente']
+
+    def get_tipo_fuente(self, obj):
+        return obj.__class__.__name__
 
 
 # --- Serializers simples para relaciones nested ---
@@ -32,17 +44,15 @@ class DepartamentoSimpleSerializer(serializers.ModelSerializer):
 
 # --- Serializers principales con organizacion automática ---
 
-class RepositorioSistemaSerializer(serializers.ModelSerializer):
+# Serializer para RepositorioSistema
+class RepositorioSistemaSerializer(FuenteBaseSerializer):
     class Meta:
         model = RepositorioSistema
-        fields = '__all__'
-        read_only_fields = ['organizacion']
+        fields = FuenteBaseSerializer.Meta.fields + ['descripcion']
 
-    def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
-        return super().create(validated_data)
 
-class SistemaInformacionSerializer(serializers.ModelSerializer):
+# Serializer para SistemaInformacion
+class SistemaInformacionSerializer(FuenteBaseSerializer):
     repositorio = RepositorioSistemaSimpleSerializer(many=True, read_only=True)
     repositorio_ids = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -53,24 +63,18 @@ class SistemaInformacionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SistemaInformacion
-        fields = '__all__'
-        read_only_fields = ['organizacion']
+        fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'repositorio', 'repositorio_ids']
 
-    def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
-        return super().create(validated_data)
 
-class ControlSerializer(serializers.ModelSerializer):
+# Serializer para Control
+class ControlSerializer(FuenteBaseSerializer):
     class Meta:
         model = Control
-        fields = '__all__'
-        read_only_fields = ['organizacion']
+        fields = FuenteBaseSerializer.Meta.fields + ['descripcion']
 
-    def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
-        return super().create(validated_data)
 
-class ProcesoNegocioSerializer(serializers.ModelSerializer):
+# Serializer para ProcesoNegocio
+class ProcesoNegocioSerializer(FuenteBaseSerializer):
     sistema = SistemaInformacionSimpleSerializer(many=True, read_only=True)
     sistema_ids = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -81,14 +85,11 @@ class ProcesoNegocioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProcesoNegocio
-        fields = '__all__'
-        read_only_fields = ['organizacion']
+        fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'sistema', 'sistema_ids']
 
-    def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
-        return super().create(validated_data)
 
-class StakeholderSerializer(serializers.ModelSerializer):
+# Serializer para Stakeholder
+class StakeholderSerializer(FuenteBaseSerializer):
     procesos = ProcesoNegocioSimpleSerializer(many=True, read_only=True)
     procesos_ids = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -99,14 +100,11 @@ class StakeholderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Stakeholder
-        fields = '__all__'
-        read_only_fields = ['organizacion']
+        fields = FuenteBaseSerializer.Meta.fields + ['descripcion_rol', 'procesos', 'procesos_ids']
 
-    def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
-        return super().create(validated_data)
 
-class DepartamentoSerializer(serializers.ModelSerializer):
+# Serializer para Departamento
+class DepartamentoSerializer(FuenteBaseSerializer):
     stakeholder = StakeholderSimpleSerializer(many=True, read_only=True)
     stakeholder_ids = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -124,12 +122,7 @@ class DepartamentoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Departamento
-        fields = '__all__'
-        read_only_fields = ['organizacion']
-
-    def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
-        return super().create(validated_data)
+        fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'stakeholder', 'stakeholder_ids', 'procesos', 'procesos_ids']
 
 
 class OrgProfileSerializer(serializers.ModelSerializer):
@@ -160,3 +153,37 @@ class UserSerializer(serializers.ModelSerializer):
             descripcion=profile_data.get("descripcion", ''),
         )
         return user
+
+class DataProblemSerializer(serializers.ModelSerializer):
+    fuente_1 = serializers.PrimaryKeyRelatedField(queryset=Fuente.objects.all())
+    fuente_2 = serializers.PrimaryKeyRelatedField(queryset=Fuente.objects.all(), allow_null=True)
+
+    stakeholder = StakeholderSimpleSerializer(read_only=True)
+    stakeholder_id = serializers.PrimaryKeyRelatedField(
+        queryset=Stakeholder.objects.all(), write_only=True, source='stakeholder'
+    )
+
+    departamentos = DepartamentoSimpleSerializer(many=True, read_only=True)
+    departamentos_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Departamento.objects.all(),
+        write_only=True,
+        source='departamentos'
+    )
+
+    procesos_negocio = ProcesoNegocioSimpleSerializer(many=True, read_only=True)
+    procesos_negocio_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=ProcesoNegocio.objects.all(),
+        write_only=True,
+        source='procesos_negocio'
+    )
+
+    class Meta:
+        model = DataProblem
+        fields = '__all__'
+        read_only_fields = ['organizacion']
+
+    def create(self, validated_data):
+        validated_data['organizacion'] = self.context['request'].user.org_profile
+        return super().create(validated_data)

@@ -13,6 +13,8 @@ import SistemasPage from './pages/SistemasPage';
 import ProcesosPage from './pages/ProcesosPage';
 import StakeholderPage from './pages/StakeholderPage';
 import DepartamentosPage from './pages/DepartamentosPage';
+import IdentificaciondeDataProblems from './pages/IdentificaciondeDataProblems';
+import CargarDataProblem from './pages/CargarDataProblem';
 
 function Logout() {
   localStorage.clear()
@@ -41,6 +43,8 @@ function App() {
         <Route path="/procesos" element={<ProtectedRoute><ProcesosPage/></ProtectedRoute>} />
         <Route path="/stakeholders" element={<ProtectedRoute><StakeholderPage/></ProtectedRoute>} />
         <Route path="/departamentos" element={<ProtectedRoute><DepartamentosPage/></ProtectedRoute>} />
+        <Route path="/dataproblems" element={<ProtectedRoute><IdentificaciondeDataProblems /></ProtectedRoute>} />
+        <Route path="/cargardataproblems" element={<ProtectedRoute><CargarDataProblem /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />}></Route>
       </Routes>
     </BrowserRouter>

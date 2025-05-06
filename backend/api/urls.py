@@ -7,6 +7,8 @@ from .views import (
     ProcesoNegocioViewSet,
     StakeholderViewSet,
     DepartamentoViewSet,
+    DataProblemViewSet,
+    TodasLasFuentesViewSet,
 )
 
 
@@ -17,6 +19,8 @@ router.register(r'controles', ControlViewSet, basename='controles')
 router.register(r'procesos', ProcesoNegocioViewSet, basename='procesos')
 router.register(r'stakeholders', StakeholderViewSet, basename='stakeholders')
 router.register(r'departamentos', DepartamentoViewSet, basename='departamentos')
+router.register(r'dataproblem', DataProblemViewSet, basename='dataproblem')
+router.register(r'fuentes', TodasLasFuentesViewSet, basename='fuentes')
 
 urlpatterns = [
     path('', include(router.urls)),

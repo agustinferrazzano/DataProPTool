@@ -44,7 +44,7 @@ function HomeUser() {
             {/* Cuerpo */}
             <main className="homeuser-main">
                 <div className="button-group">
-                    <button className="main-button" onClick={() => navigate("/pageA1")}>
+                    <button className="main-button" onClick={() => navigate("/dataproblems")}>
                         A1. Identificación de Data Problems
                     </button>
                     <button className="main-button" onClick={() => navigate("/pageA2")}>
