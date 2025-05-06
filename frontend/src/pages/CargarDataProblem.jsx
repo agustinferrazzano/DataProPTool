@@ -8,17 +8,18 @@ function CargarDataProblem() {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [sourceDescription, setSourceDescription] = useState("");
-    const [identificationSources, setIdentificationSources] = useState([]);
-    const [confirmationSources, setConfirmationSources] = useState([]);
+    const [groupedSources, setGroupedSources] = useState([]); // Fuentes agrupadas por tipo
     const [departments, setDepartments] = useState([]);
     const [businessProcesses, setBusinessProcesses] = useState([]);
+    const [stakeholders, setStakeholders] = useState([]); // Lista de Stakeholders
     const [selectedDepartments, setSelectedDepartments] = useState([]);
     const [selectedProcesses, setSelectedProcesses] = useState([]);
     const [selectedIdentificationSource, setSelectedIdentificationSource] = useState("");
     const [selectedConfirmationSource, setSelectedConfirmationSource] = useState("");
+    const [selectedStakeholder, setSelectedStakeholder] = useState(""); // Stakeholder seleccionado
     const navigate = useNavigate();
 
-    // Función para obtener departamentos y procesos de negocio
+    // Función para obtener departamentos, procesos, fuentes y stakeholders
     const fetchData = () => {
         api.get("/api/departamentos/")
             .then((response) => setDepartments(response.data))
@@ -30,10 +31,27 @@ function CargarDataProblem() {
 
         api.get("/api/fuentes/")
             .then((response) => {
-                setIdentificationSources(response.data);
-                setConfirmationSources(response.data);
+                // Agrupa las fuentes por tipo
+                const grouped = response.data.reduce((acc, source) => {
+                    const group = acc[source.tipo_fuente] || [];
+                    group.push({ value: source.id, label: source.nombre });
+                    acc[source.tipo_fuente] = group;
+                    return acc;
+                }, {});
+
+                // Convierte el objeto agrupado en un array para react-select
+                const groupedArray = Object.keys(grouped).map((key) => ({
+                    label: key,
+                    options: grouped[key],
+                }));
+
+                setGroupedSources(groupedArray);
             })
             .catch((error) => console.error("Error al obtener fuentes:", error));
+
+        api.get("/api/stakeholders/")
+            .then((response) => setStakeholders(response.data))
+            .catch((error) => console.error("Error al obtener stakeholders:", error));
     };
 
     useEffect(() => {
@@ -48,13 +66,14 @@ function CargarDataProblem() {
             fuente_identificacion: selectedIdentificationSource,
             fuente_confirmacion: selectedConfirmationSource,
             descripcion_fuente: sourceDescription,
+            stakeholder_id: selectedStakeholder,
             departamentos_ids: selectedDepartments,
-            procesos_ids: selectedProcesses,
+            procesos_negocio_ids: selectedProcesses,
         };
 
-        console.log("Datos enviados:", newDataProblem);
+        console.log("Datos enviados:", JSON.stringify(newDataProblem, null, 2));
 
-        api.post("/api/dataproblems/", newDataProblem)
+        api.post("/api/dataproblem/", newDataProblem)
             .then((response) => {
                 if (response.status === 201) {
                     alert("Data Problem creado correctamente.");
@@ -91,38 +110,24 @@ function CargarDataProblem() {
                 ></textarea>
 
                 <label htmlFor="identificationSource">Fuente de Identificación:</label>
-                <select
+                <Select
                     id="identificationSource"
-                    value={selectedIdentificationSource}
-                    onChange={(e) => setSelectedIdentificationSource(e.target.value)}
-                    required
-                >
-                    <option value="" disabled>
-                        Selecciona una fuente
-                    </option>
-                    {identificationSources.map((source) => (
-                        <option key={source.id} value={source.id}>
-                            {source.nombre}
-                        </option>
-                    ))}
-                </select>
+                    options={groupedSources}
+                    onChange={(selectedOption) => setSelectedIdentificationSource(selectedOption.value)}
+                    placeholder="Selecciona una fuente de identificación"
+                    className="multi-select"
+                    classNamePrefix="select"
+                />
 
                 <label htmlFor="confirmationSource">Fuente de Confirmación:</label>
-                <select
+                <Select
                     id="confirmationSource"
-                    value={selectedConfirmationSource}
-                    onChange={(e) => setSelectedConfirmationSource(e.target.value)}
-                    required
-                >
-                    <option value="" disabled>
-                        Selecciona una fuente
-                    </option>
-                    {confirmationSources.map((source) => (
-                        <option key={source.id} value={source.id}>
-                            {source.nombre}
-                        </option>
-                    ))}
-                </select>
+                    options={groupedSources}
+                    onChange={(selectedOption) => setSelectedConfirmationSource(selectedOption.value)}
+                    placeholder="Selecciona una fuente de confirmación"
+                    className="multi-select"
+                    classNamePrefix="select"
+                />
 
                 <label htmlFor="sourceDescription">Descripción de la Fuente:</label>
                 <textarea
@@ -142,7 +147,7 @@ function CargarDataProblem() {
                         label: department.nombre,
                     }))}
                     onChange={(selectedOptions) => {
-                        setSelectedDepartments(selectedOptions.map((option) => option.value)); // Actualiza el estado con los IDs seleccionados
+                        setSelectedDepartments(selectedOptions.map((option) => option.value));
                     }}
                     placeholder="Selecciona uno o más departamentos"
                     className="multi-select"
@@ -162,7 +167,7 @@ function CargarDataProblem() {
                         label: process.nombre,
                     }))}
                     onChange={(selectedOptions) => {
-                        setSelectedProcesses(selectedOptions.map((option) => option.value)); // Actualiza el estado con los IDs seleccionados
+                        setSelectedProcesses(selectedOptions.map((option) => option.value));
                     }}
                     placeholder="Selecciona uno o más procesos"
                     className="multi-select"
@@ -170,6 +175,23 @@ function CargarDataProblem() {
                     value={businessProcesses
                         .filter((process) => selectedProcesses.includes(process.id))
                         .map((process) => ({ value: process.id, label: process.nombre }))}
+                    required
+                />
+
+                <label htmlFor="stakeholder">Seleccionar Stakeholder:</label>
+                <Select
+                    id="stakeholder"
+                    options={stakeholders.map((stakeholder) => ({
+                        value: stakeholder.id,
+                        label: stakeholder.nombre,
+                    }))}
+                    onChange={(selectedOption) => setSelectedStakeholder(selectedOption.value)}
+                    placeholder="Selecciona un Stakeholder"
+                    className="multi-select"
+                    classNamePrefix="select"
+                    value={stakeholders
+                        .filter((stakeholder) => stakeholder.id === selectedStakeholder)
+                        .map((stakeholder) => ({ value: stakeholder.id, label: stakeholder.nombre }))}
                     required
                 />
 

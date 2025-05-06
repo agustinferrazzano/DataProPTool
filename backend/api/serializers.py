@@ -50,6 +50,10 @@ class RepositorioSistemaSerializer(FuenteBaseSerializer):
         model = RepositorioSistema
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion']
 
+    def create(self, validated_data):
+        validated_data['organizacion'] = self.context['request'].user.org_profile
+        return super().create(validated_data)
+
 
 # Serializer para SistemaInformacion
 class SistemaInformacionSerializer(FuenteBaseSerializer):
@@ -65,12 +69,20 @@ class SistemaInformacionSerializer(FuenteBaseSerializer):
         model = SistemaInformacion
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'repositorio', 'repositorio_ids']
 
+    def create(self, validated_data):
+        validated_data['organizacion'] = self.context['request'].user.org_profile
+        return super().create(validated_data)
+
 
 # Serializer para Control
 class ControlSerializer(FuenteBaseSerializer):
     class Meta:
         model = Control
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion']
+
+    def create(self, validated_data):
+        validated_data['organizacion'] = self.context['request'].user.org_profile
+        return super().create(validated_data)
 
 
 # Serializer para ProcesoNegocio
@@ -87,6 +99,10 @@ class ProcesoNegocioSerializer(FuenteBaseSerializer):
         model = ProcesoNegocio
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'sistema', 'sistema_ids']
 
+    def create(self, validated_data):
+        validated_data['organizacion'] = self.context['request'].user.org_profile
+        return super().create(validated_data)
+
 
 # Serializer para Stakeholder
 class StakeholderSerializer(FuenteBaseSerializer):
@@ -101,6 +117,10 @@ class StakeholderSerializer(FuenteBaseSerializer):
     class Meta:
         model = Stakeholder
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion_rol', 'procesos', 'procesos_ids']
+
+    def create(self, validated_data):
+        validated_data['organizacion'] = self.context['request'].user.org_profile
+        return super().create(validated_data)
 
 
 # Serializer para Departamento
@@ -123,6 +143,10 @@ class DepartamentoSerializer(FuenteBaseSerializer):
     class Meta:
         model = Departamento
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'stakeholder', 'stakeholder_ids', 'procesos', 'procesos_ids']
+
+    def create(self, validated_data):
+        validated_data['organizacion'] = self.context['request'].user.org_profile
+        return super().create(validated_data)
 
 
 class OrgProfileSerializer(serializers.ModelSerializer):
@@ -155,13 +179,8 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 class DataProblemSerializer(serializers.ModelSerializer):
-    fuente_1 = serializers.PrimaryKeyRelatedField(queryset=Fuente.objects.all())
-    fuente_2 = serializers.PrimaryKeyRelatedField(queryset=Fuente.objects.all(), allow_null=True)
-
-    stakeholder = StakeholderSimpleSerializer(read_only=True)
-    stakeholder_id = serializers.PrimaryKeyRelatedField(
-        queryset=Stakeholder.objects.all(), write_only=True, source='stakeholder'
-    )
+    fuente_identificacion = serializers.PrimaryKeyRelatedField(queryset=Fuente.objects.all())
+    fuente_confirmacion = serializers.PrimaryKeyRelatedField(queryset=Fuente.objects.all(), allow_null=True)
 
     departamentos = DepartamentoSimpleSerializer(many=True, read_only=True)
     departamentos_ids = serializers.PrimaryKeyRelatedField(
@@ -179,10 +198,20 @@ class DataProblemSerializer(serializers.ModelSerializer):
         source='procesos_negocio'
     )
 
+    stakeholder = StakeholderSimpleSerializer(read_only=True)
+    stakeholder_id = serializers.PrimaryKeyRelatedField(
+        queryset=Stakeholder.objects.all(),
+        write_only=True,
+        source='stakeholder'
+    )
+
     class Meta:
         model = DataProblem
-        fields = '__all__'
-        read_only_fields = ['organizacion']
+        fields = [
+            'id', 'nombre', 'descripcion', 'fuente_identificacion', 'fuente_confirmacion',
+            'descripcion_fuente','stakeholder', 'stakeholder_id', 'departamentos', 'departamentos_ids',
+            'procesos_negocio', 'procesos_negocio_ids',
+        ]
 
     def create(self, validated_data):
         validated_data['organizacion'] = self.context['request'].user.org_profile
