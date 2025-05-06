@@ -7,7 +7,7 @@ from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
 from rest_framework.viewsets import ViewSet
-from .models import RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento
+from .models import RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem
 from .serializers import (
     RepositorioSistemaSerializer,
     SistemaInformacionSerializer,
@@ -24,7 +24,7 @@ class DataProblemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return DataProblemSerializer.objects.filter(organizacion=self.request.user.org_profile)
+        return DataProblem.objects.filter(organizacion=self.request.user.org_profile)
 
 
 class TodasLasFuentesViewSet(ViewSet):

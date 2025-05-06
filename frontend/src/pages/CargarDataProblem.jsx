@@ -195,9 +195,14 @@ function CargarDataProblem() {
                     required
                 />
 
-                <button type="submit" className="submit-button">
-                    Crear Data Problem
-                </button>
+                <div className="button-group">
+                    <button type="button" className="cancel-button" onClick={() => navigate("/dataproblems")}>
+                        Cancelar
+                    </button>
+                    <button type="submit" className="submit-button">
+                        Crear Data Problem
+                    </button>
+                </div>
             </form>
         </div>
     );

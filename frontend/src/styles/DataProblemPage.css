@@ -36,3 +36,34 @@
 .data-problem-item p {
     margin: 5px 0;
 }
+
+.data-problems-table-container {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.data-problems-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.data-problems-table th,
+.data-problems-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.data-problems-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.data-problems-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.data-problems-table tr:hover {
+    background-color: #f1f1f1;
+}
