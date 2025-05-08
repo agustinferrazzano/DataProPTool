@@ -43,7 +43,7 @@ function HomeUser() {
 
             {/* Cuerpo */}
             <main className="homeuser-main">
-                <div className="button-group">
+                <div className="main-buttons-grid">
                     <button className="main-button" onClick={() => navigate("/dataproblems")}>
                         A1. Identificación de Data Problems
                     </button>
@@ -60,7 +60,7 @@ function HomeUser() {
                         A5. Priorización de Data Problems específicos
                     </button>
                 </div>
-                <button className="main-button main-button-bottom" onClick={() => navigate("/datos-org")}>
+                <button className="user-button" onClick={() => navigate("/datos-org")}>
                     Carga de datos
                 </button>
             </main>

@@ -73,47 +73,87 @@
 /* Cuerpo */
 .homeuser-main {
     display: flex;
-    flex-direction: column; /* Asegura que los elementos estén en columnas */
-    align-items: center; /* Centra los elementos horizontalmente */
-    gap: 20px; /* Espaciado entre los grupos de botones */
-    padding: 20px;
-}
-
-/* Contenedor para los botones */
-.button-group {
-    display: flex;
-    justify-content: center; /* Centra los botones horizontalmente */
-    align-items: center; /* Alinea los botones verticalmente */
-    gap: 15px; /* Espaciado entre los botones */
-    flex-wrap: wrap; /* Permite que los botones se ajusten si no caben en una fila */
-    width: 100%; /* Asegura que el contenedor ocupe todo el ancho disponible */
-    max-width: 800px; /* Limita el ancho máximo del contenedor */
-    margin: 0 auto; /* Centra el contenedor horizontalmente */
-    box-sizing: border-box; /* Incluye el padding en el ancho total */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    max-width: 1500px;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    position: relative; /* Added for user-button positioning */
 }
 
 /* Botones principales */
+.main-buttons-grid {
+    display: flex; /* Changed from grid to flex */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1000px;
+    margin-bottom: 2rem; /* Added space for user button */
+  }
+
 .main-button {
-    padding: 15px 20px;
-    background-color: #007bff;
-    color: white;
+    padding: 2rem 1.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 15px;
+    background: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #2c3e50;
+    flex: 1; /* Makes buttons grow equally */
+    min-width: 140px; /* Minimum width for smaller screens */
     text-align: center;
-    white-space: nowrap; /* Evita que el texto se ajuste en varias líneas */
-    word-wrap: break-word; /* Asegura que las palabras largas se dividan si es necesario */
-    width: 150px; /* Ajusta el ancho de los botones */
-    height: 50px; /* Ajusta la altura de los botones */
-    flex-shrink: 0; /* Evita que los botones se reduzcan si no hay suficiente espacio */
-}
-
-.main-button:hover {
-    background-color: #0056b3;
-}
-
-/* Botón adicional */
-.main-button-bottom {
-    margin-top: 20px; /* Espaciado adicional desde los botones superiores */
-}
+  }
+  
+  .main-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    background: #4a90e2;
+    color: white;
+  }
+  
+  .main-button:nth-child(5) {
+    grid-column: span 2;
+  }
+  
+  .user-button {
+    padding: 1.5rem 2rem;
+    border: none;
+    border-radius: 25px;
+    background: #2c3e50;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  .user-button:hover {
+    background: #4a90e2;
+    transform: scale(1.05);
+  }
+  
+  .user-button svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  @media (min-width: 768px) {
+    .main-buttons-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .main-button:nth-child(5) {
+      grid-column: span 1;
+    }
+  }

@@ -56,22 +56,21 @@ function IdentificaciondeDataProblems() {
             <h1>Identificación de Data Problems</h1>
             <button
                 className="add-button"
-                onClick={() => navigate("/cargardataproblems")} // Navega a la página de carga
+                onClick={() => navigate("/cargardataproblems")}
             >
                 Cargar Nuevo Data Problem
             </button>
 
-            <div className="data-problems-table-container">
-                <h2>Lista de Data Problems</h2>
-                {dataProblems.length > 0 ? (
+            {dataProblems.length > 0 ? (
+                <div className="table-responsive">
                     <table className="data-problems-table">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
                                 <th>Descripción</th>
-                                <th>Fuente de Identificación</th>
-                                <th>Fuente de Confirmación</th>
-                                <th>Descripción de la Fuente</th>
+                                <th>Fuente ID</th>
+                                <th>Fuente Conf</th>
+                                <th>Desc. Fuente</th>
                                 <th>Stakeholder</th>
                                 <th>Departamentos</th>
                                 <th>Procesos</th>
@@ -100,10 +99,12 @@ function IdentificaciondeDataProblems() {
                             ))}
                         </tbody>
                     </table>
-                ) : (
+                </div>
+            ) : (
+                <div className="empty-state">
                     <p>No hay Data Problems cargados.</p>
-                )}
-            </div>
+                </div>
+            )}
             <button className="back-to-home" onClick={() => navigate("/")}>
                 Volver
             </button>
