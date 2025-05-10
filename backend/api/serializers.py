@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_polymorphic.serializers import PolymorphicSerializer
 from rest_framework import serializers
-from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem
+from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo
 
 # Serializer base para las fuentes
 class FuenteBaseSerializer(serializers.ModelSerializer):
@@ -178,9 +178,57 @@ class UserSerializer(serializers.ModelSerializer):
         )
         return user
 
+class TecnicaIdentificacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TecnicaIdentificacion
+        fields = '__all__'
+        read_only_fields = ['propietario']
+
+    def create(self, validated_data):
+        validated_data['propietario'] = self.context['request'].user
+        return super().create(validated_data)
+    
+class GrupoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Grupo
+        fields = ['id', 'nombre', 'organizacion']
+        read_only_fields = ['organizacion']
+
+    def create(self, validated_data):
+        validated_data['organizacion'] = self.context['request'].user.org_profile
+        return super().create(validated_data)
+
+
 class DataProblemSerializer(serializers.ModelSerializer):
-    fuente_identificacion = serializers.PrimaryKeyRelatedField(queryset=Fuente.objects.all())
-    fuente_confirmacion = serializers.PrimaryKeyRelatedField(queryset=Fuente.objects.all(), allow_null=True)
+    fuente_identificacion = FuenteBaseSerializer(read_only=True)
+    fuente_identificacion_id = serializers.PrimaryKeyRelatedField(
+        queryset=Fuente.objects.all(),
+        write_only=True,
+        source='fuente_identificacion'
+    )
+
+    tecnica_identificacion = TecnicaIdentificacionSerializer(read_only=True)
+    tecnica_identificacion_id = serializers.PrimaryKeyRelatedField(
+        queryset=TecnicaIdentificacion.objects.all(),
+        write_only=True,
+        source='tecnica_identificacion',
+    )
+
+    fuente_confirmacion = FuenteBaseSerializer(read_only=True)
+    fuente_confirmacion_id = serializers.PrimaryKeyRelatedField(
+        queryset=Fuente.objects.all(),
+        write_only=True,
+        source='fuente_confirmacion',
+        allow_null=True
+    )
+
+    tecnica_confirmacion = TecnicaIdentificacionSerializer(read_only=True)
+    tecnica_confirmacion_id = serializers.PrimaryKeyRelatedField(
+        queryset=TecnicaIdentificacion.objects.all(),
+        write_only=True,
+        source='tecnica_confirmacion',
+        allow_null=True
+    )
 
     departamentos = DepartamentoSimpleSerializer(many=True, read_only=True)
     departamentos_ids = serializers.PrimaryKeyRelatedField(
@@ -205,14 +253,28 @@ class DataProblemSerializer(serializers.ModelSerializer):
         source='stakeholder'
     )
 
+    grupo = GrupoSerializer(read_only=True)
+    grupo_id = serializers.PrimaryKeyRelatedField(
+        queryset=Grupo.objects.all(),
+        write_only=True,
+        source='Grupo'
+    )
+
     class Meta:
         model = DataProblem
         fields = [
-            'id', 'nombre', 'descripcion', 'fuente_identificacion', 'fuente_confirmacion',
-            'descripcion_fuente','stakeholder', 'stakeholder_id', 'departamentos', 'departamentos_ids',
+            'id', 'nombre', 'descripcion', 'descripcion_fuente',
+            'fuente_identificacion', 'fuente_identificacion_id',
+            'tecnica_identificacion', 'tecnica_identificacion_id',
+            'fuente_confirmacion', 'fuente_confirmacion_id',
+            'tecnica_confirmacion', 'tecnica_confirmacion_id',
+            'stakeholder', 'stakeholder_id',
+            'departamentos', 'departamentos_ids',
             'procesos_negocio', 'procesos_negocio_ids',
+            'grupo', 'grupo_id',
         ]
 
     def create(self, validated_data):
         validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
+

@@ -9,10 +9,25 @@ class OrgProfile(models.Model):
     def __str__(self):
         return self.nombre
 
+class TecnicaIdentificacion(models.Model):
+    titulo = models.CharField(max_length=100)
+    descripcion = models.TextField()
+    es_publica = models.BooleanField(default=False)
+    propietario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tecnicas')
+    def __str__(self):
+        return self.titulo
+
 class Fuente(models.Model):
     nombre = models.CharField(max_length=255)
     tipo = models.CharField(max_length=255)
     organizacion = models.ForeignKey(OrgProfile, on_delete=models.CASCADE, related_name='fuentes')
+
+    def __str__(self):
+        return self.nombre
+
+class Grupo(models.Model):
+    nombre = models.CharField(max_length=255)
+    organizacion = models.ForeignKey(OrgProfile, on_delete=models.CASCADE, related_name='grupos')
 
     def __str__(self):
         return self.nombre
@@ -45,9 +60,11 @@ class DataProblem(models.Model):
     descripcion = models.TextField()
     descripcion_fuente = models.TextField()
 
-    fuente_identificacion = models.ForeignKey(Fuente, on_delete=models.SET_NULL, null=True, related_name='dataproblems_fuente1')
+    fuente_identificacion = models.ForeignKey(Fuente, on_delete=models.CASCADE,null=True, related_name='dataproblems_fuente1')
+    tecnica_identificacion = models.ForeignKey(TecnicaIdentificacion,null=True, on_delete=models.CASCADE, related_name='dataproblems_tecnica')
     fuente_confirmacion = models.ForeignKey(Fuente, on_delete=models.SET_NULL, null=True, related_name='dataproblems_fuente2')
-
+    tecnica_confirmacion = models.ForeignKey(TecnicaIdentificacion, on_delete=models.SET_NULL, null=True, related_name='dataproblems_tecnica2')
+    Grupo = models.ForeignKey(Grupo, on_delete=models.SET_NULL, null=True, related_name='dataproblems_grupos')
     organizacion = models.ForeignKey(OrgProfile, on_delete=models.CASCADE)
     stakeholder = models.ForeignKey(Stakeholder, on_delete=models.CASCADE)
 

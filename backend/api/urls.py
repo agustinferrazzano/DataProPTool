@@ -9,6 +9,8 @@ from .views import (
     DepartamentoViewSet,
     DataProblemViewSet,
     TodasLasFuentesViewSet,
+    GrupoViewSet,
+    TecnicaIdentificacionViewSet,
 )
 
 
@@ -21,6 +23,8 @@ router.register(r'stakeholders', StakeholderViewSet, basename='stakeholders')
 router.register(r'departamentos', DepartamentoViewSet, basename='departamentos')
 router.register(r'dataproblem', DataProblemViewSet, basename='dataproblem')
 router.register(r'fuentes', TodasLasFuentesViewSet, basename='fuentes')
+router.register(r'grupos', GrupoViewSet, basename='grupos')
+router.register(r'tecnicas', TecnicaIdentificacionViewSet, basename='tecnicas')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -2,12 +2,13 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
+from django.db.models import Q
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
 from rest_framework.viewsets import ViewSet
-from .models import RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem
+from .models import RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo
 from .serializers import (
     RepositorioSistemaSerializer,
     SistemaInformacionSerializer,
@@ -16,6 +17,8 @@ from .serializers import (
     StakeholderSerializer,
     DepartamentoSerializer,
     DataProblemSerializer,
+    GrupoSerializer,
+    TecnicaIdentificacionSerializer
 )
 
 
@@ -26,6 +29,17 @@ class DataProblemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return DataProblem.objects.filter(organizacion=self.request.user.org_profile)
 
+class TecnicaIdentificacionViewSet(viewsets.ModelViewSet):
+    serializer_class = TecnicaIdentificacionSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            # Técnicas públicas + técnicas del usuario autenticado
+            return TecnicaIdentificacion.objects.filter(Q(es_publica=True) | Q(propietario=user))
+        # Solo técnicas públicas para usuarios anónimos
+        return TecnicaIdentificacion.objects.filter(es_publica=True)
 
 class TodasLasFuentesViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
@@ -97,6 +111,15 @@ class DepartamentoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Departamento.objects.filter(organizacion=self.request.user.org_profile)
+
+
+class GrupoViewSet(viewsets.ModelViewSet):
+    serializer_class = GrupoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Filtra los grupos por la organización del usuario autenticado
+        return Grupo.objects.filter(organizacion=self.request.user.org_profile)
 
 
 class RegisterUserView(APIView):
