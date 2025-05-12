@@ -13,6 +13,7 @@ function SistemasPage() {
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
     const navigate = useNavigate(); // Hook para manejar la navegación
     const [system, setSistemas] = useState([]);
+    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
 
     const handlegetSistemas = () => {
         api
@@ -46,6 +47,22 @@ function SistemasPage() {
         handlegetRepos();
     }, []);
 
+    const handlegetOrg = () => {
+        api
+            .get("/api/usuarios/")
+            .then((response) => {
+                console.log("Respuesta del backend usuario:", response.data);
+                setUsuario(response.data); // Actualiza el estado con los datos del backend
+            })
+            .catch((error) => {
+                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+            });
+    };
+
+    useEffect(() => {
+        handlegetOrg();
+    }, []);
+
     const handleSubmit = (event) => {
         event.preventDefault();
         if (systemName && systemDescription ) { //&& repoFile
@@ -53,7 +70,8 @@ function SistemasPage() {
                 nombre: systemName,
                 tipo: "Sistema",
                 descripcion: systemDescription,
-                repositorio_ids: selectedRepo,  
+                repositorio_ids: selectedRepo,
+                organizacion: org[0].id  
             };
             console.log("Datos enviados:", newSystem);
             

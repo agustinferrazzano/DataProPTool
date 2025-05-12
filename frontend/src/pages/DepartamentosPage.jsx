@@ -15,6 +15,7 @@ function DepartamentosPage() {
     const [departmentDescription, setDepartmentDescription] = useState(""); // Descripción del departamento
     const [departmentFile, setDepartmentFile] = useState(null); // Archivo del departamento
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
+    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
     const navigate = useNavigate(); // Hook para manejar la navegación
 
     const handlegetStakeholder = () => {
@@ -45,6 +46,7 @@ function DepartamentosPage() {
             });
     };
 
+    
     useEffect(() => {
         handlegetProcesos();
     }, []);
@@ -65,6 +67,21 @@ function DepartamentosPage() {
         handlegetDepartamentos();
     }, []);
     
+    const handlegetOrg = () => {
+        api
+            .get("/api/usuarios/")
+            .then((response) => {
+                console.log("Respuesta del backend usuario:", response.data);
+                setUsuario(response.data); // Actualiza el estado con los datos del backend
+            })
+            .catch((error) => {
+                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+            });
+    };
+
+    useEffect(() => {
+        handlegetOrg();
+    }, []);
 
     const handleFileChange = (event) => {
         setDepartmentFile(event.target.files[0]); // Actualiza el archivo seleccionado
@@ -78,7 +95,8 @@ function DepartamentosPage() {
                 tipo: "Departamento",
                 descripcion: departmentDescription,
                 procesos_ids: selectedProcess,
-                stakeholder_ids: selectedStakeholder,  
+                stakeholder_ids: selectedStakeholder,
+                organizacion: org[0].id  
             };
             console.log("Datos enviados:", newDepartamento);
             

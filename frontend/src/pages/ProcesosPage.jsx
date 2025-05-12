@@ -14,6 +14,7 @@ function ProcesosPage() {
     // const [processFile, setProcessFile] = useState(null); // Archivo del proceso
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
     const navigate = useNavigate(); // Hook para manejar la navegación
+    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
 
     const handlegetSistemas = () => {
         api
@@ -47,6 +48,22 @@ function ProcesosPage() {
         handlegetProcesos();
     }, []);
 
+        const handlegetOrg = () => {
+        api
+            .get("/api/usuarios/")
+            .then((response) => {
+                console.log("Respuesta del backend usuario:", response.data);
+                setUsuario(response.data); // Actualiza el estado con los datos del backend
+            })
+            .catch((error) => {
+                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+            });
+    };
+
+    useEffect(() => {
+        handlegetOrg();
+    }, []);
+
     const handleSubmit = (event) => {
         event.preventDefault();
         if (processName && processDescription ) { //&& repoFile
@@ -54,7 +71,8 @@ function ProcesosPage() {
                 nombre: processName,
                 tipo: "Proceso de negocio",
                 descripcion: processDescription,
-                sistema_ids: selectedSystem,  
+                sistema_ids: selectedSystem,
+                organizacion: org[0].id  
             };
             console.log("Datos enviados:", newProcess);
             

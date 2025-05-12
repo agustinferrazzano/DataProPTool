@@ -11,6 +11,7 @@ from .views import (
     TodasLasFuentesViewSet,
     GrupoViewSet,
     TecnicaIdentificacionViewSet,
+    UserSerializerViewSet
 )
 
 
@@ -25,6 +26,7 @@ router.register(r'dataproblem', DataProblemViewSet, basename='dataproblem')
 router.register(r'fuentes', TodasLasFuentesViewSet, basename='fuentes')
 router.register(r'grupos', GrupoViewSet, basename='grupos')
 router.register(r'tecnicas', TecnicaIdentificacionViewSet, basename='tecnicas')
+router.register(r'usuarios', UserSerializerViewSet, basename='usuarios')
 
 urlpatterns = [
     path('', include(router.urls)),

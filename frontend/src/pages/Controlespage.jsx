@@ -9,6 +9,7 @@ function ControlesPage() {
     const [policyName, setPolicyName] = useState("");
     const [politicaDescription, setDescripcion] = useState("");
     const [controls, setControls] = useState([]); // Lista de controles cargados
+    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
     const navigate = useNavigate();
 
     const handleFileChange = (event) => {
@@ -28,14 +29,30 @@ function ControlesPage() {
             });
     };
 
+    const handlegetOrg = () => {
+        api
+            .get("/api/usuarios/")
+            .then((response) => {
+                console.log("Respuesta del backend usuario:", response.data);
+                setUsuario(response.data); // Actualiza el estado con los datos del backend
+            })
+            .catch((error) => {
+                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+            });
+    };
+
     useEffect(() => {
         handlegetControls();
+        handlegetOrg();
     }, []);
+
 
     const handleSubmit = (event) => {
         event.preventDefault();
         if (policyName && politicaDescription) {
-            const newControl = { nombre: policyName, tipo: "politica", descripcion: politicaDescription };
+            
+            const newControl = { nombre: policyName, tipo: "politica", descripcion: politicaDescription, organizacion: org[0].id};
+            console.log("new control", newControl); // Verifica la estructura de los datos
             api
                 .post("/api/controles/", newControl).then((response) => {
                      if (response.status === 201) {

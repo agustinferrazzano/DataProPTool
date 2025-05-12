@@ -12,6 +12,7 @@ function RepositorioPage() {
     // const [repoFile, setRepoFile] = useState(null);
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
     const navigate = useNavigate(); // Hook para manejar la navegación
+    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
 
     const handleFileChange = (event) => {
         setRepoFile(event.target.files[0]);
@@ -33,6 +34,22 @@ function RepositorioPage() {
         handlegetRepos();
     }, []);
 
+    const handlegetOrg = () => {
+        api
+            .get("/api/usuarios/")
+            .then((response) => {
+                console.log("Respuesta del backend usuario:", response.data);
+                setUsuario(response.data); // Actualiza el estado con los datos del backend
+            })
+            .catch((error) => {
+                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+            });
+    };
+
+    useEffect(() => {
+        handlegetOrg();
+    }, []);
+
     const handleSubmit = (event) => {
         event.preventDefault();
         if (repoName && repoDescription ) { //&& repoFile
@@ -40,6 +57,7 @@ function RepositorioPage() {
                 nombre: repoName,
                 tipo: "repositorio",
                 descripcion: repoDescription,
+                organizacion: org[0].id
             };
             api
                 .post("/api/repositorios/", newRepository).then((response) => {

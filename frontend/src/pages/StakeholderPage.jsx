@@ -14,6 +14,7 @@ function StakeholderPage() {
     const [roleFile, setRoleFile] = useState(null); // Archivo del cargo
     const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
     const navigate = useNavigate(); // Hook para manejar la navegación
+    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
 
     const handlegetStakeholder = () => {
         api
@@ -51,6 +52,22 @@ function StakeholderPage() {
     //     setRoleFile(event.target.files[0]); // Actualiza el archivo seleccionado
     // };
 
+    const handlegetOrg = () => {
+        api
+            .get("/api/usuarios/")
+            .then((response) => {
+                console.log("Respuesta del backend usuario:", response.data);
+                setUsuario(response.data); // Actualiza el estado con los datos del backend
+            })
+            .catch((error) => {
+                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+            });
+    };
+
+    useEffect(() => {
+        handlegetOrg();
+    }, []);
+
     const handleSubmit = (event) => {
         event.preventDefault();
         if (roleName && roleDescription ) { //&& repoFile
@@ -58,7 +75,8 @@ function StakeholderPage() {
                 nombre: roleName,
                 tipo: "stakeholder",
                 descripcion_rol: roleDescription,
-                procesos_ids: selectedProcess,  
+                procesos_ids: selectedProcess,
+                organizacion: org[0].id  
             };
             console.log("Datos enviados:", newRole);
             

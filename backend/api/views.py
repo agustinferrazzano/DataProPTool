@@ -121,6 +121,12 @@ class GrupoViewSet(viewsets.ModelViewSet):
         # Filtra los grupos por la organización del usuario autenticado
         return Grupo.objects.filter(organizacion=self.request.user.org_profile)
 
+class UserSerializerViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(org_profile=self.request.user.org_profile)
 
 class RegisterUserView(APIView):
     permission_classes = []  # Permitir acceso sin autenticación

@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from rest_polymorphic.serializers import PolymorphicSerializer
 from rest_framework import serializers
 from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo
 
@@ -13,7 +12,7 @@ class FuenteBaseSerializer(serializers.ModelSerializer):
 
     def get_tipo_fuente(self, obj):
         return obj.__class__.__name__
-
+    
 
 # --- Serializers simples para relaciones nested ---
 
@@ -51,7 +50,6 @@ class RepositorioSistemaSerializer(FuenteBaseSerializer):
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion']
 
     def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 
 
@@ -70,7 +68,6 @@ class SistemaInformacionSerializer(FuenteBaseSerializer):
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'repositorio', 'repositorio_ids']
 
     def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 
 
@@ -81,9 +78,7 @@ class ControlSerializer(FuenteBaseSerializer):
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion']
 
     def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
-
 
 # Serializer para ProcesoNegocio
 class ProcesoNegocioSerializer(FuenteBaseSerializer):
@@ -100,7 +95,6 @@ class ProcesoNegocioSerializer(FuenteBaseSerializer):
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'sistema', 'sistema_ids']
 
     def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 
 
@@ -119,7 +113,6 @@ class StakeholderSerializer(FuenteBaseSerializer):
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion_rol', 'procesos', 'procesos_ids']
 
     def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 
 
@@ -145,7 +138,6 @@ class DepartamentoSerializer(FuenteBaseSerializer):
         fields = FuenteBaseSerializer.Meta.fields + ['descripcion', 'stakeholder', 'stakeholder_ids', 'procesos', 'procesos_ids']
 
     def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 
 
@@ -195,7 +187,6 @@ class GrupoSerializer(serializers.ModelSerializer):
         read_only_fields = ['organizacion']
 
     def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 
 
@@ -275,6 +266,5 @@ class DataProblemSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 

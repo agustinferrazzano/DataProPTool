@@ -59,8 +59,7 @@ INSTALLED_APPS = [
     "api",
     "rest_framework",
     "corsheaders",
-    "polymorphic",
-    "rest_polymorphic",
+    
 ]
 
 MIDDLEWARE = [
