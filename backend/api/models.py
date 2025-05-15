@@ -56,3 +56,10 @@ class DataProblem(models.Model):
 
     def __str__(self):
         return self.nombre
+
+class Document(models.Model):
+    id = models.AutoField(primary_key=True)
+    file = models.FileField(upload_to='documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    fuente = models.ForeignKey(Fuente, on_delete=models.CASCADE, related_name='documents')
+

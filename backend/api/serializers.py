@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_polymorphic.serializers import PolymorphicSerializer
 from rest_framework import serializers
-from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem
+from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, Document
 
 # Serializer base para las fuentes
 class FuenteBaseSerializer(serializers.ModelSerializer):
@@ -216,3 +216,10 @@ class DataProblemSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['organizacion'] = self.context['request'].user.org_profile
         return super().create(validated_data)
+
+
+# Serializer para el modelo Document
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ('id', 'file', 'uploaded_at', 'fuente')

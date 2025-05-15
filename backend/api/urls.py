@@ -9,6 +9,7 @@ from .views import (
     DepartamentoViewSet,
     DataProblemViewSet,
     TodasLasFuentesViewSet,
+    DocumentUploadView,
 )
 
 
@@ -24,4 +25,5 @@ router.register(r'fuentes', TodasLasFuentesViewSet, basename='fuentes')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('upload/', DocumentUploadView.as_view(), name='document-upload'),
 ]
