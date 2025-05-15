@@ -1,115 +1,252 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; // Asegúrate de que este archivo apunte a tu configuración de API
-import "../styles/DataProblemPage.css"; // Opcional: agrega estilos personalizados
-import "../styles/Botones.css";
+import api from "../api";
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  Container,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Stack,
+  Chip,
+  Divider,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import AddIcon from "@mui/icons-material/Add";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import Header from "../components/Header";
+import NavBoton from "../components/NavBoton";
 
 function IdentificaciondeDataProblems() {
-    const [dataProblems, setDataProblems] = useState([]); // Estado para almacenar la lista de DataProblems
-    const [fuentes, setFuentes] = useState([]); // Estado para almacenar las fuentes
-    const navigate = useNavigate();
+  const [dataProblems, setDataProblems] = useState([]);
+  const [fuentes, setFuentes] = useState([]);
+  const [grupos, setGrupos] = useState([]);
+  const navigate = useNavigate();
 
-    // Función para obtener los DataProblems desde el backend
-    const fetchDataProblems = () => {
-        api.get("/api/dataproblem/")
-            .then((response) => {
-                const problems = response.data;
+  // Fetch grupos
+  const fetchGrupos = () => {
+    api.get("/api/grupos/")
+      .then((response) => setGrupos(response.data))
+      .catch((error) => console.error("Error al obtener los grupos:", error));
+  };
 
-                // Machea los IDs de las fuentes con sus nombres
-                const updatedProblems = problems.map((problem) => ({
-                    ...problem,
-                    fuente_identificacion: fuentes.find((fuente) => fuente.id === problem.fuente_identificacion)?.nombre || "N/A",
-                    fuente_confirmacion: fuentes.find((fuente) => fuente.id === problem.fuente_confirmacion)?.nombre || "N/A",
-                }));
+  // Fetch fuentes
+  const fetchFuentes = () => {
+    api.get("/api/fuentes/")
+      .then((response) => setFuentes(response.data))
+      .catch((error) => console.error("Error al obtener las fuentes:", error));
+  };
 
-                setDataProblems(updatedProblems); // Actualiza el estado con los datos procesados
-            })
-            .catch((error) => {
-                console.error("Error al obtener los DataProblems:", error);
-            });
-    };
+  // Fetch DataProblems
+  const fetchDataProblems = () => {
+    api.get("/api/dataproblem/")
+      .then((response) => {
+        const problems = response.data;
+        // Machea los IDs de las fuentes con sus nombres SIN sobreescribir el id
+        const updatedProblems = problems.map((problem) => ({
+          ...problem,
+          fuente_identificacion_nombre:
+            fuentes.find((fuente) => fuente.id === problem.fuente_identificacion.id)?.nombre || "N/A",
+          fuente_confirmacion_nombre:
+            fuentes.find((fuente) => fuente.id === problem.fuente_confirmacion.id)?.nombre || "N/A",
+        }));
+        setDataProblems(updatedProblems);
+      })
+      .catch((error) => {
+        console.error("Error al obtener los DataProblems:", error);
+      });
+  };
 
-    // Función para obtener las fuentes desde el backend
-    const fetchFuentes = () => {
-        api.get("/api/fuentes/")
-            .then((response) => {
-                setFuentes(response.data); // Actualiza el estado con las fuentes
-            })
-            .catch((error) => {
-                console.error("Error al obtener las fuentes:", error);
-            });
-    };
+  useEffect(() => {
+    fetchGrupos();
+    fetchFuentes();
+  }, []);
 
-    // useEffect para cargar los datos al montar el componente
-    useEffect(() => {
-        fetchFuentes(); // Carga las fuentes primero
-    }, []);
+  useEffect(() => {
+    if (fuentes.length > 0) {
+      fetchDataProblems();
+    }
+    // eslint-disable-next-line
+  }, [fuentes]);
 
-    useEffect(() => {
-        if (fuentes.length > 0) {
-            fetchDataProblems(); // Carga los DataProblems después de obtener las fuentes
-        }
-    }, [fuentes]);
+  // Agrupa los DataProblems por grupo
+  const groupedByGroup = grupos.length
+    ? grupos.map((grupo) => ({
+        grupo,
+        problems: dataProblems.filter((dp) => dp.grupo?.id === grupo.id),
+      }))
+    : [
+        {
+          grupo: { nombre: "Sin Grupo" },
+          problems: dataProblems.filter((dp) => !dp.grupo),
+        },
+      ];
 
-    return (
-        <div className="data-problems-container">
-            <h1>Identificación de Data Problems</h1>
-            <button
-                className="add-button"
-                onClick={() => navigate("/cargardataproblems")}
+  // Si hay DataProblems sin grupo, agrégalos como grupo "Sin Grupo"
+  if (
+    grupos.length &&
+    dataProblems.some((dp) => !dp.grupo) &&
+    !groupedByGroup.some((g) => g.grupo.nombre === "Sin Grupo")
+  ) {
+    groupedByGroup.push({
+      grupo: { nombre: "Sin Grupo" },
+      problems: dataProblems.filter((dp) => !dp.grupo),
+    });
+  }
+
+  return (
+    <Box minHeight="100vh" bgcolor="#f7fafc">
+      <Header title="Identificación de Data Problems" />
+      <Container maxWidth="lg" sx={{ mt: 6, mb: 4 }}>
+        <Paper elevation={2} sx={{ p: 4 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+            <Typography variant="h4" color="primary">
+              Identificación de Data Problems
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={() => navigate("/cargardataproblems")}
             >
-                Cargar Nuevo Data Problem
-            </button>
+              Cargar Nuevo Data Problem
+            </Button>
+          </Stack>
+          <Divider sx={{ mb: 3 }} />
+          {groupedByGroup.length > 0 && groupedByGroup.some((g) => g.problems.length > 0) ? (
+            groupedByGroup.map((group, idx) =>
+              group.problems.length > 0 ? (
+                <Box key={group.grupo.id || "sin-grupo"} mb={4}>
+                  <Typography variant="h6" color="secondary" sx={{ mb: 2 }}>
+                    Grupo: {group.grupo.nombre}
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Nombre</TableCell>
+                          <TableCell>Descripción</TableCell>
+                          <TableCell>Fuente ID</TableCell>
+                          <TableCell>Fuente Conf</TableCell>
+                          <TableCell>Stakeholder</TableCell>
+                          <TableCell>Departamentos</TableCell>
+                          <TableCell>Procesos</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {group.problems.map((problem) => (
+                          <AccordionTableRow key={problem.id} problem={problem} />
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              ) : null
+            )
+          ) : (
+            <Typography color="text.secondary" align="center" sx={{ mt: 4 }}>
+              No hay Data Problems cargados.
+            </Typography>
+          )}
+        </Paper>
+      </Container>
 
-            {dataProblems.length > 0 ? (
-                <div className="table-responsive">
-                    <table className="data-problems-table">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                                <th>Fuente ID</th>
-                                <th>Fuente Conf</th>
-                                <th>Desc. Fuente</th>
-                                <th>Stakeholder</th>
-                                <th>Departamentos</th>
-                                <th>Procesos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dataProblems.map((problem) => (
-                                <tr key={problem.id}>
-                                    <td>{problem.nombre}</td>
-                                    <td>{problem.descripcion}</td>
-                                    <td>{problem.fuente_identificacion}</td>
-                                    <td>{problem.fuente_confirmacion}</td>
-                                    <td>{problem.descripcion_fuente}</td>
-                                    <td>{problem.stakeholder?.nombre || "N/A"}</td>
-                                    <td>
-                                        {problem.departamentos?.length > 0
-                                            ? problem.departamentos.map((dep) => dep.nombre).join(", ")
-                                            : "N/A"}
-                                    </td>
-                                    <td>
-                                        {problem.procesos_negocio?.length > 0
-                                            ? problem.procesos_negocio.map((proc) => proc.nombre).join(", ")
-                                            : "N/A"}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            ) : (
-                <div className="empty-state">
-                    <p>No hay Data Problems cargados.</p>
-                </div>
-            )}
-            <button className="back-to-home" onClick={() => navigate("/")}>
-                Volver
-            </button>
-        </div>
-    );
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 24,
+          right: 24,
+        }}
+      >
+        <NavBoton to="/" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
+          Volver
+        </NavBoton>
+      </Box>
+    </Box>
+  );
+}
+
+// Componente para una fila expandible de la tabla
+function AccordionTableRow({ problem }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <>
+      <TableRow
+        hover
+        sx={{ cursor: "pointer" }}
+        onClick={() => setExpanded((prev) => !prev)}
+      >
+        <TableCell>{problem.nombre}</TableCell>
+        <TableCell>
+          {problem.descripcion.length > 60 && !expanded
+            ? problem.descripcion.slice(0, 60) + "..."
+            : problem.descripcion}
+        </TableCell>
+        <TableCell>{problem.fuente_identificacion_nombre}</TableCell>
+        <TableCell>{problem.fuente_confirmacion_nombre}</TableCell>
+        <TableCell>{problem.stakeholder?.nombre || "N/A"}</TableCell>
+        <TableCell>
+          {problem.departamentos?.length > 0
+            ? problem.departamentos.map((dep) => (
+                <Chip key={dep.id} label={dep.nombre} size="small" sx={{ mr: 0.5 }} />
+              ))
+            : "N/A"}
+        </TableCell>
+        <TableCell>
+          {problem.procesos_negocio?.length > 0
+            ? problem.procesos_negocio.map((proc) => (
+                <Chip key={proc.id} label={proc.nombre} size="small" sx={{ mr: 0.5 }} />
+              ))
+            : "N/A"}
+        </TableCell>
+      </TableRow>
+      {expanded && (
+        <TableRow>
+          <TableCell colSpan={7} sx={{ bgcolor: "#f5f5f5" }}>
+            <Box>
+              <Typography variant="subtitle2" color="primary">
+                Descripción Completa:
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                {problem.descripcion}
+              </Typography>
+              <Typography variant="subtitle2" color="primary">
+                Descripción de la Fuente:
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                {problem.descripcion_fuente}
+              </Typography>
+              <Typography variant="subtitle2" color="primary">
+                Técnicas de Identificación / Confirmación:
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                {problem.tecnica_identificacion?.titulo || "N/A"} / {problem.tecnica_confirmacion?.titulo || "N/A"}
+              </Typography>
+              <Typography variant="subtitle2" color="primary">
+                Grupo:
+              </Typography>
+              <Typography variant="body2">
+                {problem.grupo?.nombre || "Sin Grupo"}
+              </Typography>
+            </Box>
+          </TableCell>
+        </TableRow>
+        
+      )}
+
+    </>
+    
+  );
 }
 
 export default IdentificaciondeDataProblems;

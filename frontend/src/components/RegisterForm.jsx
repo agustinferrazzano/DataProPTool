@@ -1,100 +1,122 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
-import "../styles/Form.css";
-import "../styles/Botones.css"; 
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  CircularProgress,
+  Stack,
+} from "@mui/material";
 
 function RegisterForm({ route }) {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [email, setEmail] = useState("");
-    const [nombre, setNombre] = useState(""); // Campo para el nombre del perfil organizacional
-    const [descripcion, setDescripcion] = useState(""); // Campo para la descripción del perfil organizacional
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-        try {
-            // Formato de datos esperado por el serializer
-            const data = {
-                username,
-                password,
-                email,
-                org_profile: {
-                    nombre,
-                    descripcion,
-                },
-            };
+    try {
+      const data = {
+        username,
+        password,
+        email,
+        org_profile: {
+          nombre,
+          descripcion,
+        },
+      };
 
-            console.log("Datos enviados:", data); // Log para depuración
-            const res = await api.post(route, data);
-            console.log("Respuesta del servidor:", res.data); // Log para depuración
-            navigate("/login");
-        } catch (error) {
-            console.error("Error al registrar:", error.response?.data || error.message);
-            alert(error.response?.data?.detail || "Error al registrar la cuenta.");
-        } finally {
-            setLoading(false);
-        }
-    };
+      await api.post(route, data);
+      navigate("/login");
+    } catch (error) {
+      alert(error.response?.data?.detail || "Error al registrar la cuenta.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-    <div>
-        <form onSubmit={handleSubmit} className="form-container">
-            <h1>Register</h1>
-            <input
-                className="form-input"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                required
-            />
-            <input
-                className="form-input"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-            />
-            <input
-                className="form-input"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                required
-            />
-            <input
-                className="form-input"
-                type="text"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                placeholder="Nombre del perfil organizacional"
-                required
-            />
-            <textarea
-                className="form-input"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                placeholder="Descripción del perfil organizacional"
-                required
-            ></textarea>
-            {loading && <p>Loading...</p>}
-            <button className="form-button" type="submit" disabled={loading}>
-                Register
-            </button>
-        </form>
-        <button className="back-to-home" onClick={() => navigate("/home")}>
+  return (
+    <Box maxWidth={400} mx="auto" mt={10} p={4} bgcolor="white" borderRadius={2} boxShadow={3}>
+      <form onSubmit={handleSubmit}>
+        <Stack spacing={3}>
+          <Typography variant="h5" align="center" color="primary">
+            Registro
+          </Typography>
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            fullWidth
+          />
+          <TextField
+            label="Usuario"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            fullWidth
+          />
+          <TextField
+            label="Contraseña"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            fullWidth
+          />
+          <TextField
+            label="Nombre del perfil organizacional"
+            type="text"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            required
+            fullWidth
+          />
+          <TextField
+            label="Descripción del perfil organizacional"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            required
+            fullWidth
+            multiline
+            minRows={2}
+          />
+          {loading && (
+            <Box textAlign="center">
+              <CircularProgress color="primary" size={24} />
+            </Box>
+          )}
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            disabled={loading}
+            fullWidth
+          >
+            Registrar
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => navigate("/home")}
+            fullWidth
+          >
             Cancelar
-        </button>
-    </div>
-    
-);
+          </Button>
+        </Stack>
+      </form>
+    </Box>
+  );
 }
 
 export default RegisterForm;

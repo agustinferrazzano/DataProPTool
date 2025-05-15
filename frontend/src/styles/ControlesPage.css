@@ -60,12 +60,12 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    width: 100%;
-    max-width: 600px;
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;        
+    max-width: none;     
+    background: none;    
+    padding: 0;          
+    border-radius: 0;    
+    box-shadow: none;    
 }
 
 /* Subtítulo del formulario */
@@ -104,4 +104,93 @@
 
 .submit-button:hover {
     background-color: #0056b3;
+}
+
+/* Estilos para el modal */
+.modal {
+    background: #fff;
+    padding: 2rem 2rem;
+    border-radius: 16px;
+    max-width: 500px;
+    width: 95%;
+    margin: auto;
+    box-shadow: 0 12px 32px rgba(44, 62, 80, 0.25), 0 1.5px 6px rgba(44, 62, 80, 0.10);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    border: 2px
+}
+
+.modal-overlay {
+    background: rgba(44, 62, 80, 0.25); /* Más claro y azul oscuro */
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Estilos para el formulario dentro del modal */
+.controles-form label {
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: #2c3e50;
+}
+
+.controles-form input,
+.controles-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+
+.controles-form textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Botones alineados a la derecha */
+.button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.submit-button {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    background-color: #27ae60;
+}
+
+.cancel-button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.cancel-button:hover {
+    background-color: #c0392b;
 }

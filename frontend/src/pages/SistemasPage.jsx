@@ -1,185 +1,211 @@
-import { useState } from "react";
-import "../styles/FormPage.css";
-import "../styles/Botones.css";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; 
-import { useEffect } from "react";
+import api from "../api";
+import Header from "../components/Header";
+import NavBoton from "../components/NavBoton";
+import GenericModal from "../components/GenericModal";
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  Stack,
+  Container,
+  TextField,
+  List,
+  ListItem,
+} from "@mui/material";
+import Select from "react-select";
 
 function SistemasPage() {
-    const [repositories, setRepositories] = useState([]); // Lista de repositorios cargados
-    const [selectedRepo, setSelectedRepo] = useState([]); // Cambia de string a array
-    const [systemName, setSystemName] = useState(""); // Nombre del sistema
-    const [systemDescription, setSystemDescription] = useState(""); // Descripción del sistema
-    const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
-    const navigate = useNavigate(); // Hook para manejar la navegación
-    const [system, setSistemas] = useState([]);
-    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
+  const [repositories, setRepositories] = useState([]);
+  const [selectedRepo, setSelectedRepo] = useState([]);
+  const [systemName, setSystemName] = useState("");
+  const [systemDescription, setSystemDescription] = useState("");
+  const [system, setSistemas] = useState([]);
+  const [org, setUsuario] = useState([{}]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
-    const handlegetSistemas = () => {
-        api
-            .get("/api/sistemas/")
-            .then((response) => {
-                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
-                setSistemas(response.data); // Asegúrate de que sea un array
-            })
-            .catch((error) => {
-                console.error("Error fetching controls:", error);
-            });
-    };
+  const handlegetSistemas = () => {
+    api
+      .get("/api/sistemas/")
+      .then((response) => setSistemas(response.data))
+      .catch((error) => console.error("Error fetching sistemas:", error));
+  };
 
-    useEffect(() => {
-        handlegetSistemas();
-    }, []);
+  useEffect(() => {
+    handlegetSistemas();
+  }, []);
 
-    const handlegetRepos = () => {
-        api
-            .get("/api/repositorios/")
-            .then((response) => {
-                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
-                setRepositories(response.data); // Asegúrate de que sea un array
-            })
-            .catch((error) => {
-                console.error("Error fetching controls:", error);
-            });
-    };
+  const handlegetRepos = () => {
+    api
+      .get("/api/repositorios/")
+      .then((response) => setRepositories(response.data))
+      .catch((error) => console.error("Error fetching repositorios:", error));
+  };
 
-    useEffect(() => {
-        handlegetRepos();
-    }, []);
+  useEffect(() => {
+    handlegetRepos();
+  }, []);
 
-    const handlegetOrg = () => {
-        api
-            .get("/api/usuarios/")
-            .then((response) => {
-                console.log("Respuesta del backend usuario:", response.data);
-                setUsuario(response.data); // Actualiza el estado con los datos del backend
-            })
-            .catch((error) => {
-                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
-            });
-    };
+  const handlegetOrg = () => {
+    api
+      .get("/api/usuarios/")
+      .then((response) => setUsuario(response.data))
+      .catch((error) => console.error("Error al obtener los usuarios:", error.response?.data || error.message));
+  };
 
-    useEffect(() => {
-        handlegetOrg();
-    }, []);
+  useEffect(() => {
+    handlegetOrg();
+  }, []);
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        if (systemName && systemDescription ) { //&& repoFile
-            const newSystem = {
-                nombre: systemName,
-                tipo: "Sistema",
-                descripcion: systemDescription,
-                repositorio_ids: selectedRepo,
-                organizacion: org[0].id  
-            };
-            console.log("Datos enviados:", newSystem);
-            
-            api
-                .post("/api/sistemas/", newSystem).then((response) => {
-                     if (response.status === 201) {
-                        setSystemName("");
-                        setSystemDescription("");
-                        setSelectedRepo([]); // Limpia el estado de selectedRepo
-                        handlegetSistemas();
-                        alert("Sistemas y archivo cargados correctamente.");
-                        
-                    } else {
-                        alert(error);
-                    }
-                })
-        } else {
-            alert("Por favor, completa todos los campos.");
-        }
-    };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (systemName && systemDescription) {
+      const newSystem = {
+        nombre: systemName,
+        tipo: "Sistema",
+        descripcion: systemDescription,
+        repositorio_ids: selectedRepo,
+        organizacion: org[0].id,
+      };
+      api
+        .post("/api/sistemas/", newSystem)
+        .then((response) => {
+          if (response.status === 201) {
+            setSystemName("");
+            setSystemDescription("");
+            setSelectedRepo([]);
+            handlegetSistemas();
+            setIsModalOpen(false);
+            alert("Sistema cargado correctamente.");
+          } else {
+            alert("Error al cargar el sistema.");
+          }
+        })
+        .catch(() => alert("Error al cargar el sistema."));
+    } else {
+      alert("Por favor, completa todos los campos.");
+    }
+  };
 
-    return (
-        <div className="page-container">
-            <h1>Gestión de Sistemas</h1>
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/home");
+  };
 
-            <div className="items-list">
-                <h2>Sistemas Cargados</h2>
-                {system.length > 0 ? (
-                    <ul>
-                        {system.map((sistema, index) => (
-                            <li key={index} className="item">
-                                <div>
-                                    <strong>{sistema.nombre}</strong>
-                                    <p>{sistema.descripcion}</p>
-                                    <p>
-                                        Repositorios:{" "}
-                                        {sistema.repositorio.map((repo) => repo.nombre).join(", ")}
-                                    </p>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No hay repositorios cargados.</p>
-                )}
-                <button
-                    className="show-form-button"
-                    onClick={() => setShowForm(!showForm)}
-                >
-                    {showForm ? "Ocultar Formulario" : "Cargar Nuevo Sistema"}
-                </button>
-            </div>
+  return (
+    <Box minHeight="100vh" bgcolor="#f7fafc">
+      <Header title="Gestión de Sistemas" onLogout={handleLogout} />
 
-            {showForm && (
-                <form className="form-container" onSubmit={handleSubmit}>
-                    <h3>Cargar Nuevo Sistema</h3>
-                    <label htmlFor="systemName">Nombre del Sistema:</label>
-                    <input
-                        type="text"
-                        id="systemName"
-                        value={systemName}
-                        onChange={(e) => setSystemName(e.target.value)}
-                        placeholder="Ingresa el nombre del sistema"
-                        required
-                    />
+      <Container maxWidth="md" sx={{ mt: 6, mb: 4 }}>
+        <Paper elevation={2} sx={{ p: 4 }}>
+          <Typography variant="h4" color="primary" align="center" gutterBottom>
+            Gestión de Sistemas
+          </Typography>
 
-                    <label htmlFor="systemDescription">Descripción del Sistema:</label>
-                    <textarea
-                        id="systemDescription"
-                        value={systemDescription}
-                        onChange={(e) => setSystemDescription(e.target.value)}
-                        placeholder="Ingresa una descripción del sistema"
-                        required
-                    ></textarea>
-
-                    <label>Seleccionar Repositorios:</label>
-                    <div className="checkbox-group">
-                        {repositories.map((repo) => (
-                            <div key={repo.id} className="checkbox-item">
-                                <input
-                                    type="checkbox"
-                                    id={`repo-${repo.id}`}
-                                    value={repo.id}
-                                    checked={selectedRepo.includes(repo.id)} // Marca el checkbox si el ID está en selectedRepo
-                                    onChange={(e) => {
-                                        if (e.target.checked) { 
-                                            setSelectedRepo([...selectedRepo, repo.id]);
-                                        } else {
-                                            setSelectedRepo(selectedRepo.filter((id) => id !== repo.id));
-                                        }
-                                    }}
-                                />
-                                <label htmlFor={`repo-${repo.id}`}>{repo.nombre}</label>
-                            </div>
-                        ))}
-                    </div>
-
-                    <button type="submit" className="submit-button">
-                        Cargar Sistema
-                    </button>
-                </form>
+          <Box my={4}>
+            <Typography variant="h6" color="primary">
+              Sistemas Cargados
+            </Typography>
+            {system.length > 0 ? (
+              <List>
+                {system.map((sistema, index) => (
+                  <ListItem key={index} divider>
+                    <Stack direction="row" spacing={4} width="100%" alignItems="center">
+                      <Typography variant="subtitle1" sx={{ minWidth: 180, fontWeight: 500 }}>
+                        {sistema.nombre}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                        {sistema.descripcion}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                        Repositorios: {sistema.repositorio?.map((repo) => repo.nombre).join(", ")}
+                      </Typography>
+                    </Stack>
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography color="text.secondary">No hay sistemas cargados.</Typography>
             )}
+          </Box>
 
-            <button className="back-to-home" onClick={() => navigate("/datos-org")}>
-                Volver
-            </button>
-        </div>
-    );
+          <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Cargar Nuevo Sistema
+            </Button>
+          </Stack>
+        </Paper>
+      </Container>
+
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 24,
+          right: 24,
+        }}
+      >
+        <NavBoton to="/datos-org" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
+          Volver
+        </NavBoton>
+      </Box>
+
+      {/* Modal para cargar nuevo sistema usando GenericModal */}
+      <GenericModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+        title="Cargar Nuevo Sistema"
+        submitText="Cargar"
+        cancelText="Cancelar"
+        selectSection={
+          <>
+            <label htmlFor="repoSelect">Seleccionar Repositorios:</label>
+            <Select
+              id="repoSelect"
+              isMulti
+              options={repositories.map(repo => ({
+                value: repo.id,
+                label: repo.nombre
+              }))}
+              value={repositories
+                .filter(repo => selectedRepo.includes(repo.id))
+                .map(repo => ({ value: repo.id, label: repo.nombre }))}
+              onChange={selectedOptions => {
+                setSelectedRepo(selectedOptions ? selectedOptions.map(opt => opt.value) : []);
+              }}
+              className="multi-select"
+              classNamePrefix="select"
+              placeholder="Selecciona uno o más repositorios"
+            />
+          </>
+        }
+      >
+        <TextField
+          label="Nombre del Sistema"
+          value={systemName}
+          onChange={(e) => setSystemName(e.target.value)}
+          required
+          fullWidth
+        />
+        <TextField
+          label="Descripción del Sistema"
+          value={systemDescription}
+          onChange={(e) => setSystemDescription(e.target.value)}
+          required
+          fullWidth
+          multiline
+          minRows={3}
+        />
+      </GenericModal>
+    </Box>
+  );
 }
 
 export default SistemasPage;

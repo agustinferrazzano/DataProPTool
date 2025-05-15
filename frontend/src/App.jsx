@@ -15,6 +15,7 @@ import StakeholderPage from './pages/StakeholderPage';
 import DepartamentosPage from './pages/DepartamentosPage';
 import IdentificaciondeDataProblems from './pages/IdentificaciondeDataProblems';
 import CargarDataProblem from './pages/CargarDataProblem';
+import Tecnicas from './pages/Tecnicas';
 
 function Logout() {
   localStorage.clear()
@@ -45,6 +46,7 @@ function App() {
         <Route path="/departamentos" element={<ProtectedRoute><DepartamentosPage/></ProtectedRoute>} />
         <Route path="/dataproblems" element={<ProtectedRoute><IdentificaciondeDataProblems /></ProtectedRoute>} />
         <Route path="/cargardataproblems" element={<ProtectedRoute><CargarDataProblem /></ProtectedRoute>} />
+        <Route path="/tecnicas" element={<ProtectedRoute><Tecnicas /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />}></Route>
       </Routes>
     </BrowserRouter>

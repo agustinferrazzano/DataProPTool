@@ -1,196 +1,216 @@
-import { useState } from "react";
-import "../styles/FormPage.css";
-import "../styles/Botones.css";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; 
-import { useEffect } from "react";
+import api from "../api";
+import Header from "../components/Header";
+import NavBoton from "../components/NavBoton";
+import GenericModal from "../components/GenericModal";
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  Stack,
+  Container,
+  TextField,
+  List,
+  ListItem,
+} from "@mui/material";
+import Select from "react-select";
 
 function ProcesosPage() {
-    const [systems, setSistemas] = useState([]); 
-    const [process, setProcess] = useState([]); 
-    const [selectedSystem, setSelectedSystem] = useState([]); 
-    const [processName, setProcessName] = useState(""); // Nombre del proceso
-    const [processDescription, setProcessDescription] = useState(""); // Descripción del proceso
-    // const [processFile, setProcessFile] = useState(null); // Archivo del proceso
-    const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
-    const navigate = useNavigate(); // Hook para manejar la navegación
-    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
+  const [systems, setSistemas] = useState([]);
+  const [process, setProcess] = useState([]);
+  const [selectedSystem, setSelectedSystem] = useState([]);
+  const [processName, setProcessName] = useState("");
+  const [processDescription, setProcessDescription] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [org, setUsuario] = useState([{}]);
+  const navigate = useNavigate();
 
-    const handlegetSistemas = () => {
-        api
-            .get("/api/sistemas/")
-            .then((response) => {
-                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
-                setSistemas(response.data); // Asegúrate de que sea un array
-            })
-            .catch((error) => {
-                console.error("Error fetching controls:", error);
-            });
-    };
+  const handlegetSistemas = () => {
+    api
+      .get("/api/sistemas/")
+      .then((response) => setSistemas(response.data))
+      .catch((error) => {
+        console.error("Error fetching sistemas:", error);
+      });
+  };
 
-    useEffect(() => {
-        handlegetSistemas();
-    }, []);
+  useEffect(() => {
+    handlegetSistemas();
+  }, []);
 
-    const handlegetProcesos = () => {
-        api
-            .get("/api/procesos/")
-            .then((response) => {
-                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
-                setProcess(response.data); // Asegúrate de que sea un array
-            })
-            .catch((error) => {
-                console.error("Error fetching controls:", error);
-            });
-    };
+  const handlegetProcesos = () => {
+    api
+      .get("/api/procesos/")
+      .then((response) => setProcess(response.data))
+      .catch((error) => {
+        console.error("Error fetching procesos:", error);
+      });
+  };
 
-    useEffect(() => {
-        handlegetProcesos();
-    }, []);
+  useEffect(() => {
+    handlegetProcesos();
+  }, []);
 
-        const handlegetOrg = () => {
-        api
-            .get("/api/usuarios/")
-            .then((response) => {
-                console.log("Respuesta del backend usuario:", response.data);
-                setUsuario(response.data); // Actualiza el estado con los datos del backend
-            })
-            .catch((error) => {
-                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
-            });
-    };
+  const handlegetOrg = () => {
+    api
+      .get("/api/usuarios/")
+      .then((response) => setUsuario(response.data))
+      .catch((error) => {
+        console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+      });
+  };
 
-    useEffect(() => {
-        handlegetOrg();
-    }, []);
+  useEffect(() => {
+    handlegetOrg();
+  }, []);
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        if (processName && processDescription ) { //&& repoFile
-            const newProcess = {
-                nombre: processName,
-                tipo: "Proceso de negocio",
-                descripcion: processDescription,
-                sistema_ids: selectedSystem,
-                organizacion: org[0].id  
-            };
-            console.log("Datos enviados:", newProcess);
-            
-            api
-                .post("/api/procesos/", newProcess).then((response) => {
-                     if (response.status === 201) {
-                        setProcessName("");
-                        setProcessDescription("");
-                        setSelectedSystem([]); // Limpia el estado de selectedRepo
-                        handlegetProcesos();
-                        alert("Sistemas y archivo cargados correctamente.");
-                        
-                    } else {
-                        alert(error);
-                    }
-                })
-        } else {
-            alert("Por favor, completa todos los campos.");
-        }
-    };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (processName && processDescription) {
+      const newProcess = {
+        nombre: processName,
+        tipo: "Proceso de negocio",
+        descripcion: processDescription,
+        sistema_ids: selectedSystem,
+        organizacion: org[0].id,
+      };
+      api
+        .post("/api/procesos/", newProcess)
+        .then((response) => {
+          if (response.status === 201) {
+            setProcessName("");
+            setProcessDescription("");
+            setSelectedSystem([]);
+            handlegetProcesos();
+            setIsModalOpen(false);
+            alert("Proceso cargado correctamente.");
+          } else {
+            alert("Error al cargar el proceso.");
+          }
+        });
+    } else {
+      alert("Por favor, completa todos los campos.");
+    }
+  };
 
-    return (
-        <div className="page-container">
-            <h1>Gestión de Procesos Organizacionales</h1>
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/home");
+  };
 
-            <div className="items-list">
-                <h2>Procesos Cargados</h2>
-                {process.length > 0 ? (
-                    <ul>
-                        {process.map((proces, index) => (
-                            <li key={index} className="item">
-                                <div>
-                                    <strong>{proces.nombre}</strong>
-                                    <p>{proces.descripcion}</p>
-                                    <p>
-                                        Sistemas:{" "}
-                                        {proces.sistema.map((sistema) => sistema.nombre).join(", ")}
-                                    </p>
-                                </div>
-                                
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No hay Procesos cargados.</p>
-                )}
-                
-                <button
-                    className="show-form-button"
-                    onClick={() => setShowForm(!showForm)}
-                >
-                    {showForm ? "Ocultar Formulario" : "Cargar Nuevo Proceso"}
-                </button>
-            </div>
+  return (
+    <Box minHeight="100vh" bgcolor="#f7fafc">
+      <Header title="Gestión de Procesos Organizacionales" onLogout={handleLogout} />
 
-            {showForm && (
-                <form className="form-container" onSubmit={handleSubmit}>
-                    <h3>Cargar Nuevo Proceso</h3>
-                    <label htmlFor="processName">Nombre del Proceso:</label>
-                    <input
-                        type="text"
-                        id="processName"
-                        value={processName}
-                        onChange={(e) => setProcessName(e.target.value)}
-                        placeholder="Ingresa el nombre del proceso"
-                        required
-                    />
+      <Container maxWidth="md" sx={{ mt: 6, mb: 4 }}>
+        <Paper elevation={2} sx={{ p: 4 }}>
+          <Typography variant="h4" color="primary" align="center" gutterBottom>
+            Gestión de Procesos Organizacionales
+          </Typography>
 
-                    <label htmlFor="processDescription">Descripción del Proceso:</label>
-                    <textarea
-                        id="processDescription"
-                        value={processDescription}
-                        onChange={(e) => setProcessDescription(e.target.value)}
-                        placeholder="Ingresa una descripción del proceso"
-                        required
-                    ></textarea>
-
-                    {/* <label htmlFor="processFile">Documento:</label>
-                    <input
-                        type="file"
-                        id="processFile"
-                        onChange={handleFileChange}
-                        required
-                    /> */}
-
-                    <label>Seleccionar Repositorios:</label>
-                    <div className="checkbox-group">
-                        {systems.map((system) => (
-                            <div key={system.id} className="checkbox-item">
-                                <input
-                                    type="checkbox"
-                                    id={`sistema-${system.id}`}
-                                    value={system.id}
-                                    checked={selectedSystem.includes(system.id)} // Marca el checkbox si el ID está en selectedRepo
-                                    onChange={(e) => {
-                                        if (e.target.checked) { 
-                                            setSelectedSystem([...selectedSystem, system.id]);
-                                        } else {
-                                            setSelectedSystem(selectedSystem.filter((id) => id !== system.id));
-                                        }
-                                    }}
-                                />
-                                <label htmlFor={`sistema-${system.id}`}>{system.nombre}</label>
-                            </div>
-                        ))}
-                    </div>
-
-                    <button type="submit" className="submit-button">
-                        Cargar Proceso
-                    </button>
-                </form>
+          <Box my={4}>
+            <Typography variant="h6" color="primary">
+              Procesos Cargados
+            </Typography>
+            {process.length > 0 ? (
+              <List>
+                {process.map((proces, index) => (
+                  <ListItem key={index} divider>
+                    <Stack direction="row" spacing={4} width="100%" alignItems="center">
+                      <Typography variant="subtitle1" sx={{ minWidth: 180, fontWeight: 500 }}>
+                        {proces.nombre}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                        {proces.descripcion}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                        Sistemas: {proces.sistema?.map((sistema) => sistema.nombre).join(", ")}
+                      </Typography>
+                    </Stack>
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography color="text.secondary">No hay Procesos cargados.</Typography>
             )}
+          </Box>
 
-            <button className="back-to-home" onClick={() => navigate("/datos-org")}>
-                Volver
-            </button>
-        </div>
-    );
+          <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Cargar Nuevo Proceso
+            </Button>
+          </Stack>
+        </Paper>
+      </Container>
+
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 24,
+          right: 24,
+        }}
+      >
+        <NavBoton to="/datos-org" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
+          Volver
+        </NavBoton>
+      </Box>
+
+      {/* Modal para cargar nuevo proceso usando GenericModal */}
+      <GenericModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+        title="Cargar Nuevo Proceso"
+        submitText="Cargar"
+        cancelText="Cancelar"
+        selectSection={
+          <>
+            <label htmlFor="systemSelect">Seleccionar Sistemas:</label>
+            <Select
+              id="systemSelect"
+              isMulti
+              options={systems.map(system => ({
+                value: system.id,
+                label: system.nombre
+              }))}
+              value={systems
+                .filter(system => selectedSystem.includes(system.id))
+                .map(system => ({ value: system.id, label: system.nombre }))}
+              onChange={selectedOptions => {
+                setSelectedSystem(selectedOptions ? selectedOptions.map(opt => opt.value) : []);
+              }}
+              className="multi-select"
+              classNamePrefix="multi-select"
+              placeholder="Selecciona uno o más sistemas"
+            />
+          </>
+        }
+      >
+        <TextField
+          label="Nombre del Proceso"
+          value={processName}
+          onChange={(e) => setProcessName(e.target.value)}
+          required
+          fullWidth
+        />
+        <TextField
+          label="Descripción del Proceso"
+          value={processDescription}
+          onChange={(e) => setProcessDescription(e.target.value)}
+          required
+          fullWidth
+          multiline
+          minRows={3}
+        />
+      </GenericModal>
+    </Box>
+  );
 }
 
 export default ProcesosPage;

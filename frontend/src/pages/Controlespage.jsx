@@ -1,126 +1,183 @@
-import { useState } from "react";
-import "../styles/ControlesPage.css";
-import "../styles/Botones.css"; 
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; 
-import { useEffect } from "react";
+import api from "../api";
+import Header from "../components/Header";
+import NavBoton from "../components/NavBoton";
+import GenericModal from "../components/GenericModal";
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  Stack,
+  Container,
+  TextField,
+  List,
+  ListItem,
+} from "@mui/material";
 
 function ControlesPage() {
-    const [policyName, setPolicyName] = useState("");
-    const [politicaDescription, setDescripcion] = useState("");
-    const [controls, setControls] = useState([]); // Lista de controles cargados
-    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
-    const navigate = useNavigate();
+  const [policyName, setPolicyName] = useState("");
+  const [politicaDescription, setDescripcion] = useState("");
+  const [controls, setControls] = useState([]);
+  const [org, setUsuario] = useState([{}]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
-    const handleFileChange = (event) => {
-        setFile(event.target.files[0]);
-    };
+  const handlegetControls = () => {
+    api
+      .get("/api/controles/")
+      .then((response) => {
+        setControls(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching controls:", error);
+      });
+  };
 
+  const handlegetOrg = () => {
+    api
+      .get("/api/usuarios/")
+      .then((response) => {
+        setUsuario(response.data);
+      })
+      .catch((error) => {
+        console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+      });
+  };
 
-    const handlegetControls = () => {
-        api
-            .get("/api/controles/")
-            .then((response) => {
-                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
-                setControls(response.data); // Asegúrate de que sea un array
-            })
-            .catch((error) => {
-                console.error("Error fetching controls:", error);
-            });
-    };
+  useEffect(() => {
+    handlegetControls();
+    handlegetOrg();
+    // eslint-disable-next-line
+  }, []);
 
-    const handlegetOrg = () => {
-        api
-            .get("/api/usuarios/")
-            .then((response) => {
-                console.log("Respuesta del backend usuario:", response.data);
-                setUsuario(response.data); // Actualiza el estado con los datos del backend
-            })
-            .catch((error) => {
-                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
-            });
-    };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (policyName && politicaDescription) {
+      const newControl = {
+        nombre: policyName,
+        tipo: "politica",
+        descripcion: politicaDescription,
+        organizacion: org[0].id,
+      };
+      api
+        .post("/api/controles/", newControl)
+        .then((response) => {
+          if (response.status === 201) {
+            setPolicyName("");
+            setDescripcion("");
+            handlegetControls();
+            setIsModalOpen(false);
+            alert("Política cargada correctamente.");
+          } else {
+            alert("Error al cargar la política.");
+          }
+        })
+        .catch(() => alert("Error al cargar la política."));
+    } else {
+      alert("Por favor, completa todos los campos.");
+    }
+  };
 
-    useEffect(() => {
-        handlegetControls();
-        handlegetOrg();
-    }, []);
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/home");
+  };
 
+  return (
+    <Box minHeight="100vh" bgcolor="#f7fafc">
+      <Header title="Gestión de Políticas" onLogout={handleLogout} />
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        if (policyName && politicaDescription) {
-            
-            const newControl = { nombre: policyName, tipo: "politica", descripcion: politicaDescription, organizacion: org[0].id};
-            console.log("new control", newControl); // Verifica la estructura de los datos
-            api
-                .post("/api/controles/", newControl).then((response) => {
-                     if (response.status === 201) {
-                        setPolicyName("");
-                        setDescripcion("");
-                        handlegetControls();
-                        alert("Política y archivo cargados correctamente.");
-                        
-                    } else {
-                        alert(error);
-                    }
-                })
-        } else {
-            alert("Por favor, completa todos los campos.");
-        }
-    };
+      <Container maxWidth="md" sx={{ mt: 6, mb: 4 }}>
+        <Paper elevation={2} sx={{ p: 4 }}>
+          <Typography variant="h4" color="primary" align="center" gutterBottom>
+            Gestión de Políticas
+          </Typography>
 
-    return (
-        <div className="controles-container">
-            <h1>Gestión de Políticas</h1>
+          <Box my={4}>
+            <Typography variant="h6" color="primary">
+              Controles Cargados
+            </Typography>
+            {controls.length > 0 ? (
+              <List>
+                {controls.map((control, index) => (
+                  <ListItem key={index} divider>
+                    <Stack direction="row" spacing={4} width="100%" alignItems="center">
+                      <Typography variant="subtitle1" sx={{ minWidth: 180, fontWeight: 500 }}>
+                        {control.nombre}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                        {control.descripcion}
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        onClick={() => {/* lógica para modificar el control */}}
+                      >
+                        Modificar
+                      </Button>
+                    </Stack>
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography color="text.secondary">No hay controles cargados.</Typography>
+            )}
+          </Box>
 
-            {/* Lista de controles */}
-            <div className="controls-list">
-                <h2>Controles Cargados</h2>
-                {controls.length > 0 ? (
-                    <ul>
-                        {controls.map((control, index) => (
-                            <li key={index}>
-                                {control.nombre} - {control.descripcion}
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No hay controles cargados.</p>
-                )}
-            </div>
-            
-            <form className="controles-form" onSubmit={handleSubmit}>
-                <h3>Cargar Nuevas Políticas</h3> {/* Subtítulo agregado */}
-                <label htmlFor="policyName">Nombre de la Política:</label>
-                <input
-                    type="text"
-                    id="policyName"
-                    value={policyName}
-                    onChange={(e) => setPolicyName(e.target.value)}
-                    placeholder="Ingresa el nombre de la política"
-                    required
-                />
+          <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Cargar Nueva Política
+            </Button>
+          </Stack>
+        </Paper>
+      </Container>
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 24,
+          right: 24,
+        }}
+      >
+        <NavBoton to="/datos-org" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
+          Volver
+        </NavBoton>
+      </Box>
 
-                    <label htmlFor="politicaDescription">Descripción de la Politica:</label>
-                    <textarea
-                        id="politicaDescription"
-                        value={politicaDescription}
-                        onChange={(e) => setDescripcion(e.target.value)}
-                        placeholder="Ingresa una descripción del departamento"
-                        required
-                    ></textarea>
-
-                <button type="submit" className="submit-button">
-                    Cargar
-                </button>
-            </form>
-
-            <button className="back-to-home" onClick={() => navigate("/datos-org")}>
-                Volver
-            </button>
-        </div>
-    );
+      {/* Modal para cargar nueva política usando GenericModal */}
+      <GenericModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+        title="Cargar Nuevas Políticas"
+        submitText="Cargar"
+        cancelText="Cancelar"
+      >
+        <TextField
+          label="Nombre de la Política"
+          value={policyName}
+          onChange={(e) => setPolicyName(e.target.value)}
+          required
+          fullWidth
+        />
+        <TextField
+          label="Descripción de la Política"
+          value={politicaDescription}
+          onChange={(e) => setDescripcion(e.target.value)}
+          required
+          fullWidth
+          multiline
+          minRows={3}
+        />
+      </GenericModal>
+    </Box>
+  );
 }
 
 export default ControlesPage;

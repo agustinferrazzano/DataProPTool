@@ -1,152 +1,169 @@
-import { useState } from "react";
-import "../styles/FormPage.css";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Botones.css";
-import api from "../api"; 
-import { useEffect } from "react";
+import api from "../api";
+import Header from "../components/Header";
+import NavBoton from "../components/NavBoton";
+import GenericModal from "../components/GenericModal";
+import {
+  Box,
+  Button,
+  Typography,
+  Paper,
+  Stack,
+  Container,
+  TextField,
+  List,
+  ListItem,
+} from "@mui/material";
 
 function RepositorioPage() {
-    const [repositories, setRepositories] = useState([]); // Lista de repositorios cargados
-    const [repoName, setRepoName] = useState("");
-    const [repoDescription, setRepoDescription] = useState("");
-    // const [repoFile, setRepoFile] = useState(null);
-    const [showForm, setShowForm] = useState(false); // Controla la visibilidad del formulario
-    const navigate = useNavigate(); // Hook para manejar la navegación
-    const [org, setUsuario] = useState([{}]); // Lista de controles cargados
+  const [repositories, setRepositories] = useState([]);
+  const [repoName, setRepoName] = useState("");
+  const [repoDescription, setRepoDescription] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [org, setUsuario] = useState([{}]);
+  const navigate = useNavigate();
 
-    const handleFileChange = (event) => {
-        setRepoFile(event.target.files[0]);
-    };
+  const handlegetRepos = () => {
+    api
+      .get("/api/repositorios/")
+      .then((response) => setRepositories(response.data))
+      .catch((error) => console.error("Error fetching repositorios:", error));
+  };
 
-    const handlegetRepos = () => {
-        api
-            .get("/api/repositorios/")
-            .then((response) => {
-                console.log("Respuesta del backend:", response.data); // Verifica la estructura de los datos
-                setRepositories(response.data); // Asegúrate de que sea un array
-            })
-            .catch((error) => {
-                console.error("Error fetching controls:", error);
-            });
-    };
+  useEffect(() => {
+    handlegetRepos();
+  }, []);
 
-    useEffect(() => {
-        handlegetRepos();
-    }, []);
+  const handlegetOrg = () => {
+    api
+      .get("/api/usuarios/")
+      .then((response) => setUsuario(response.data))
+      .catch((error) => console.error("Error al obtener los usuarios:", error.response?.data || error.message));
+  };
 
-    const handlegetOrg = () => {
-        api
-            .get("/api/usuarios/")
-            .then((response) => {
-                console.log("Respuesta del backend usuario:", response.data);
-                setUsuario(response.data); // Actualiza el estado con los datos del backend
-            })
-            .catch((error) => {
-                console.error("Error al obtener los usuarios:", error.response?.data || error.message);
-            });
-    };
+  useEffect(() => {
+    handlegetOrg();
+  }, []);
 
-    useEffect(() => {
-        handlegetOrg();
-    }, []);
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (repoName && repoDescription) {
+      const newRepository = {
+        nombre: repoName,
+        tipo: "repositorio",
+        descripcion: repoDescription,
+        organizacion: org[0].id,
+      };
+      api
+        .post("/api/repositorios/", newRepository)
+        .then((response) => {
+          if (response.status === 201) {
+            setRepoName("");
+            setRepoDescription("");
+            handlegetRepos();
+            setIsModalOpen(false);
+            alert("Repositorio cargado correctamente.");
+          } else {
+            alert("Error al cargar el repositorio.");
+          }
+        });
+    } else {
+      alert("Por favor, completa todos los campos.");
+    }
+  };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        if (repoName && repoDescription ) { //&& repoFile
-            const newRepository = {
-                nombre: repoName,
-                tipo: "repositorio",
-                descripcion: repoDescription,
-                organizacion: org[0].id
-            };
-            api
-                .post("/api/repositorios/", newRepository).then((response) => {
-                     if (response.status === 201) {
-                        setRepoName("");
-                        setRepoDescription("");
-                        handlegetRepos();
-                        alert("Repositorio y archivo cargados correctamente.");
-                        
-                    } else {
-                        alert(error);
-                    }
-                })
-        } else {
-            alert("Por favor, completa todos los campos.");
-        }
-    };
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/home");
+  };
 
-    return (
-        <div className="page-container">
-            <h1>Gestión de Repositorios</h1>
+  return (
+    <Box minHeight="100vh" bgcolor="#f7fafc">
+      <Header title="Gestión de Repositorios" onLogout={handleLogout} />
 
-            <div className="items-list">
-                <h2>Repositorios Cargados</h2>
-                {repositories.length > 0 ? (
-                    <ul>
-                        {repositories.map((repo, index) => (
-                            <li key={index} className="item">
-                                <div>
-                                    <strong>{repo.nombre}</strong>
-                                    <p>{repo.id} {repo.descripcion}</p>
-                                    
-                                </div>
-                                
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No hay repositorios cargados.</p>
-                )}
-                <button
-                    className="show-form-button"
-                    onClick={() => setShowForm(!showForm)}
-                >
-                    {showForm ? "Ocultar Formulario" : "Cargar Nuevo Repositorio"}
-                </button>
-            </div>
+      <Container maxWidth="md" sx={{ mt: 6, mb: 4 }}>
+        <Paper elevation={2} sx={{ p: 4 }}>
+          <Typography variant="h4" color="primary" align="center" gutterBottom>
+            Gestión de Repositorios
+          </Typography>
 
-            {showForm && (
-                <form className="form-container" onSubmit={handleSubmit}>
-                    <h3>Cargar Nuevo Repositorio</h3>
-                    <label htmlFor="repoName">Nombre del Repositorio:</label>
-                    <input
-                        type="text"
-                        id="repoName"
-                        value={repoName}
-                        onChange={(e) => setRepoName(e.target.value)}
-                        placeholder="Ingresa el nombre del repositorio"
-                        required
-                    />
-
-                    <label htmlFor="repoDescription">Descripción:</label>
-                    <textarea
-                        id="repoDescription"
-                        value={repoDescription}
-                        onChange={(e) => setRepoDescription(e.target.value)}
-                        placeholder="Ingresa una descripción"
-                        required
-                    ></textarea>
-
-                    {/* <label htmlFor="repoFile">Documento:</label>
-                    <input
-                        type="file"
-                        id="repoFile"
-                        onChange={handleFileChange}
-                        required
-                    /> */}
-
-                    <button type="submit" className="submit-button">
-                        Cargar
-                    </button>
-                </form>
+          <Box my={4}>
+            <Typography variant="h6" color="primary">
+              Repositorios Cargados
+            </Typography>
+            {repositories.length > 0 ? (
+              <List>
+                {repositories.map((repo, index) => (
+                  <ListItem key={index} divider>
+                    <Stack direction="row" spacing={4} width="100%" alignItems="center">
+                      <Typography variant="subtitle1" sx={{ minWidth: 180, fontWeight: 500 }}>
+                        {repo.nombre}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                        {repo.descripcion}
+                      </Typography>
+                    </Stack>
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography color="text.secondary">No hay repositorios cargados.</Typography>
             )}
+          </Box>
 
-            <button className="back-to-home" onClick={() => navigate("/datos-org")}>
-                Volver
-            </button>
-        </div>
-    );
+          <Stack direction="row" spacing={2} justifyContent="center" mb={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Cargar Nuevo Repositorio
+            </Button>
+          </Stack>
+        </Paper>
+      </Container>
+
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 24,
+          right: 24,
+        }}
+      >
+        <NavBoton to="/datos-org" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
+          Volver
+        </NavBoton>
+      </Box>
+
+      {/* Modal para cargar nuevo repositorio usando GenericModal */}
+      <GenericModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+        title="Cargar Nuevo Repositorio"
+        submitText="Cargar"
+        cancelText="Cancelar"
+      >
+        <TextField
+          label="Nombre del Repositorio"
+          value={repoName}
+          onChange={(e) => setRepoName(e.target.value)}
+          required
+          fullWidth
+        />
+        <TextField
+          label="Descripción"
+          value={repoDescription}
+          onChange={(e) => setRepoDescription(e.target.value)}
+          required
+          fullWidth
+          multiline
+          minRows={3}
+        />
+      </GenericModal>
+    </Box>
+  );
 }
 
 export default RepositorioPage;

@@ -187,6 +187,7 @@ class GrupoSerializer(serializers.ModelSerializer):
         read_only_fields = ['organizacion']
 
     def create(self, validated_data):
+        validated_data['propietario'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 
 
@@ -218,7 +219,8 @@ class DataProblemSerializer(serializers.ModelSerializer):
         queryset=TecnicaIdentificacion.objects.all(),
         write_only=True,
         source='tecnica_confirmacion',
-        allow_null=True
+        allow_null=True,
+        required=False
     )
 
     departamentos = DepartamentoSimpleSerializer(many=True, read_only=True)
@@ -248,7 +250,9 @@ class DataProblemSerializer(serializers.ModelSerializer):
     grupo_id = serializers.PrimaryKeyRelatedField(
         queryset=Grupo.objects.all(),
         write_only=True,
-        source='Grupo'
+        source='Grupo',
+        required=False,
+        allow_null=True,
     )
 
     class Meta:
@@ -262,7 +266,7 @@ class DataProblemSerializer(serializers.ModelSerializer):
             'stakeholder', 'stakeholder_id',
             'departamentos', 'departamentos_ids',
             'procesos_negocio', 'procesos_negocio_ids',
-            'grupo', 'grupo_id',
+            'grupo', 'grupo_id', 'organizacion'
         ]
 
     def create(self, validated_data):
