@@ -8,7 +8,7 @@ from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
 from rest_framework.viewsets import ViewSet
-from .models import RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo
+from .models import RepositorioSistema, AnalisisDataProblem, SistemaInformacion, HerramientadeAnalisis, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, DataStage, DataQuality
 from .serializers import (
     RepositorioSistemaSerializer,
     SistemaInformacionSerializer,
@@ -18,7 +18,11 @@ from .serializers import (
     DepartamentoSerializer,
     DataProblemSerializer,
     GrupoSerializer,
-    TecnicaIdentificacionSerializer
+    TecnicaIdentificacionSerializer,
+    HerramientadeAnalisisSerializer,
+    DataStageSerializer,
+    DataQualitySerializer,
+    AnalisisDataProblemSerializer
 )
 
 
@@ -27,7 +31,15 @@ class DataProblemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return DataProblem.objects.filter(organizacion=self.request.user.org_profile)
+        qs = DataProblem.objects.filter(organizacion=self.request.user.org_profile)
+        # Si quieres optimizar, puedes usar select_related/prefetch_related
+        if self.request.query_params.get("with_analisis") == "1":
+            return qs.prefetch_related(
+                "analisis__herramientas",
+                "analisis__data_stages",
+                "analisis__data_qualities"
+            )
+        return qs
 
 class TecnicaIdentificacionViewSet(viewsets.ModelViewSet):
     serializer_class = TecnicaIdentificacionSerializer
@@ -40,6 +52,18 @@ class TecnicaIdentificacionViewSet(viewsets.ModelViewSet):
             return TecnicaIdentificacion.objects.filter(Q(es_publica=True) | Q(propietario=user))
         # Solo técnicas públicas para usuarios anónimos
         return TecnicaIdentificacion.objects.filter(es_publica=True)
+
+class HerramientadeAnalisisViewSet(viewsets.ModelViewSet):
+    serializer_class = HerramientadeAnalisisSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated:
+            # Herramientas públicas + herramientas del usuario autenticado
+            return HerramientadeAnalisis.objects.filter(Q(es_publica=True) | Q(propietario=user))
+        # Solo herramientas públicas para usuarios anónimos
+        return HerramientadeAnalisis.objects.filter(es_publica=True)    
 
 class TodasLasFuentesViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
@@ -139,3 +163,21 @@ class RegisterUserView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print("Errores de validación:", serializer.errors)  # Agrega este log
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class DataStageViewSet(viewsets.ModelViewSet):
+    queryset = DataStage.objects.all()
+    serializer_class = DataStageSerializer
+
+class DataQualityViewSet(viewsets.ModelViewSet):
+    queryset = DataQuality.objects.all()
+    serializer_class = DataQualitySerializer
+
+class AnalisisDataProblemViewSet(viewsets.ModelViewSet):
+    queryset = AnalisisDataProblem.objects.all()
+    serializer_class = AnalisisDataProblemSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return AnalisisDataProblem.objects.filter(
+            data_problem__organizacion=self.request.user.org_profile
+        )

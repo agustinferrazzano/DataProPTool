@@ -6,7 +6,7 @@ import { ThemeProvider, CssBaseline, createTheme } from '@mui/material';
 const colors = {
   primaryBlue: '#1E3A8A',     // Azul oscuro para botones y navbar
   secondaryBlue: '#3B82F6',   // Azul medio para hover o destacados
-  grayLight: '#F3F4F6',       // Fondo claro
+  grayLight: '#f5f5f5',       // Fondo claro
   grayMedium: '#9CA3AF',      // Texto secundario, bordes
   grayDark: '#374151',        // Texto principal
   white: '#FFFFFF',           // Fondo principal

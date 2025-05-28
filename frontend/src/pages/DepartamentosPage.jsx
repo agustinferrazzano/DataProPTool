@@ -162,7 +162,7 @@ function DepartamentosPage() {
 
       <Box
         sx={{
-          position: "absolute",
+          position: "fixed",
           bottom: 24,
           right: 24,
         }}

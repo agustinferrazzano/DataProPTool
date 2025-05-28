@@ -13,7 +13,19 @@ class TecnicaIdentificacion(models.Model):
     titulo = models.CharField(max_length=100)
     descripcion = models.TextField()
     es_publica = models.BooleanField(default=False)
-    propietario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tecnicas')
+    propietario = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='tecnicas_identificacion'
+    )
+    def __str__(self):
+        return self.titulo
+
+class HerramientadeAnalisis(models.Model):
+    titulo = models.CharField(max_length=100)
+    descripcion = models.TextField()
+    es_publica = models.BooleanField(default=False)
+    propietario = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='herramientas_analisis'
+    )
     def __str__(self):
         return self.titulo
 
@@ -73,3 +85,35 @@ class DataProblem(models.Model):
 
     def __str__(self):
         return self.nombre
+
+class DataStage(models.Model):
+    titulo = models.CharField(max_length=100)
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.titulo
+
+class DataQuality(models.Model):
+    titulo = models.CharField(max_length=100)
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return self.titulo
+
+class AnalisisDataProblem(models.Model):
+    data_problem = models.OneToOneField(
+        DataProblem, on_delete=models.CASCADE, related_name="analisis"
+    )
+    herramientas = models.ManyToManyField(
+        HerramientadeAnalisis, related_name="analisis_dataproblems", blank=True
+    )
+    data_stages = models.ManyToManyField(
+        DataStage, related_name="analisis_dataproblems", blank=True
+    )
+    data_qualities = models.ManyToManyField(
+        DataQuality, related_name="analisis_dataproblems", blank=True
+    )
+    causa_raiz = models.TextField()
+
+    def __str__(self):
+        return f"Análisis de {self.data_problem.nombre}"

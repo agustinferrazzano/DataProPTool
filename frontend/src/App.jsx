@@ -16,6 +16,15 @@ import DepartamentosPage from './pages/DepartamentosPage';
 import IdentificaciondeDataProblems from './pages/IdentificaciondeDataProblems';
 import CargarDataProblem from './pages/CargarDataProblem';
 import Tecnicas from './pages/Tecnicas';
+import AnalisisdeDataProblems from './pages/AnalisisdeDataProblems';
+import AnalizarDataProblems from './pages/AnalizarDataProblems';
+import Information from './pages/information';
+import EvaluacionDataProblems from './pages/EvaluacionDataProblems';
+import HerramientasDeAnalisis from './pages/HerramientasAnalisis';
+import ResultadosClasificacionDataProblems from './pages/ResuladosClasificacion';
+import ClassificacionDataProblems from './pages/ClasificacionDataProblems';
+import PriorizacionProcesos from './pages/PriorizacionProcesos';
+
 
 function Logout() {
   localStorage.clear()
@@ -47,11 +56,19 @@ function App() {
         <Route path="/dataproblems" element={<ProtectedRoute><IdentificaciondeDataProblems /></ProtectedRoute>} />
         <Route path="/cargardataproblems" element={<ProtectedRoute><CargarDataProblem /></ProtectedRoute>} />
         <Route path="/tecnicas" element={<ProtectedRoute><Tecnicas /></ProtectedRoute>} />
+        <Route path="/herramientas" element={<ProtectedRoute><HerramientasDeAnalisis /></ProtectedRoute>} />
+        <Route path="/analisis" element={<ProtectedRoute><AnalisisdeDataProblems /></ProtectedRoute>} />
+        <Route path="/analizar/:id" element={<ProtectedRoute><AnalizarDataProblems /></ProtectedRoute>} />
+        <Route path="/information" element={<ProtectedRoute><Information /></ProtectedRoute>} />
+        <Route path="/evaluacion" element={<ProtectedRoute><EvaluacionDataProblems /></ProtectedRoute>} />
+        <Route path="/resultadosclasificacion" element={<ProtectedRoute><ResultadosClasificacionDataProblems /></ProtectedRoute>} />
+        <Route path="/clasificaciondataproblems" element={<ProtectedRoute><ClassificacionDataProblems /></ProtectedRoute>} />
+        <Route path="/priorizacionprocesos" element={<ProtectedRoute><PriorizacionProcesos /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />}></Route>
       </Routes>
     </BrowserRouter>
     </>
   )
 }
-
+  
 export default App

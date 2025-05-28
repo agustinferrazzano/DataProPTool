@@ -88,6 +88,7 @@ function Tecnicas() {
     <Box minHeight="100vh" bgcolor="#f7fafc">
       <Header title="Técnicas de Identificación" />
       <Container maxWidth="md" sx={{ mt: 6, mb: 4 }}>
+        {/* Sección Técnicas */}
         <Paper elevation={2} sx={{ p: 4 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Typography variant="h4" color="primary">
@@ -110,7 +111,7 @@ function Tecnicas() {
                 xs={12}
                 sm={6}
                 md={4}
-                lg={4} // Máximo 3 por fila en pantallas grandes
+                lg={4}
               >
                 <Card>
                   <CardActionArea onClick={() => openModal(tecnica)}>
@@ -127,7 +128,7 @@ function Tecnicas() {
         </Paper>
       </Container>
 
-      {/* Modal Detalles */}
+      {/* Modal Detalles Técnica */}
       <Dialog open={isModalOpen} onClose={closeModal} maxWidth="sm" fullWidth>
         <DialogTitle>{selectedTecnica?.titulo}</DialogTitle>
         <DialogContent>
@@ -143,7 +144,7 @@ function Tecnicas() {
         </DialogActions>
       </Dialog>
 
-      {/* Modal Agregar */}
+      {/* Modal Agregar Técnica */}
       <Dialog open={isAddModalOpen} onClose={closeAddModal} maxWidth="sm" fullWidth>
         <form onSubmit={handleAddTecnica}>
           <DialogTitle>Agregar Nueva Técnica</DialogTitle>
@@ -153,6 +154,16 @@ function Tecnicas() {
               value={newTitulo}
               onChange={(e) => setNewTitulo(e.target.value)}
               placeholder="Ingresa el título de la técnica"
+              required
+              fullWidth
+              multiline
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              label="Descripción"
+              value={newDescripcion}
+              onChange={(e) => setNewDescripcion(e.target.value)}
+              placeholder="Ingresa la descripción de la técnica"
               required
               fullWidth
               multiline
@@ -173,7 +184,7 @@ function Tecnicas() {
 
       <Box
         sx={{
-          position: "absolute",
+          position: "fixed",
           bottom: 24,
           right: 24,
         }}

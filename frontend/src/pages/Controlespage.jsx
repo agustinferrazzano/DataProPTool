@@ -140,9 +140,10 @@ function ControlesPage() {
       </Container>
       <Box
         sx={{
-          position: "absolute",
+          position: "fixed", // Cambia de absolute a fixed
           bottom: 24,
           right: 24,
+          zIndex: 1200, // Asegura que quede por encima del contenido
         }}
       >
         <NavBoton to="/datos-org" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>

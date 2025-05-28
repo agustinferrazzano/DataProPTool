@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo
+from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, HerramientadeAnalisis, DataStage, DataQuality, AnalisisDataProblem
 
 # Serializer base para las fuentes
 class FuenteBaseSerializer(serializers.ModelSerializer):
@@ -40,6 +40,7 @@ class DepartamentoSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Departamento
         fields = ['id', 'nombre']
+
 
 # --- Serializers principales con organizacion automática ---
 
@@ -179,7 +180,18 @@ class TecnicaIdentificacionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['propietario'] = self.context['request'].user
         return super().create(validated_data)
+
+class HerramientadeAnalisisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HerramientadeAnalisis
+        fields = '__all__'
+        read_only_fields = ['propietario']
+
+    def create(self, validated_data):
+        validated_data['propietario'] = self.context['request'].user
+        return super().create(validated_data)
     
+
 class GrupoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Grupo
@@ -190,6 +202,68 @@ class GrupoSerializer(serializers.ModelSerializer):
         validated_data['propietario'] = self.context['request'].user.org_profile
         return super().create(validated_data)
 
+
+
+class DataStageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DataStage
+        fields = "__all__"
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+class DataQualitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DataQuality
+        fields = "__all__"
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+class AnalisisDataProblemSerializer(serializers.ModelSerializer):
+    herramientas = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=HerramientadeAnalisis.objects.all()
+    )
+    data_stages = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=DataStage.objects.all()
+    )
+    data_qualities = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=DataQuality.objects.all()
+    )
+    data_problem = serializers.PrimaryKeyRelatedField(
+        queryset=DataProblem.objects.all()
+    )
+
+    class Meta:
+        model = AnalisisDataProblem
+        fields = [
+            "id",
+            "data_problem",
+            "herramientas",
+            "data_stages",
+            "data_qualities",
+            "causa_raiz",
+        ]
+
+        def create(self, validated_data):
+            return super().create(validated_data)
+        
+    
+
+class AnalisisDataProblemNestedSerializer(serializers.ModelSerializer):
+    data_stages = DataStageSerializer(many=True, read_only=True)
+    data_qualities = DataQualitySerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = AnalisisDataProblem
+        fields = [
+            "id",
+            "herramientas",
+            "data_stages",
+            "data_qualities",
+            "causa_raiz",
+        ]
 
 class DataProblemSerializer(serializers.ModelSerializer):
     fuente_identificacion = FuenteBaseSerializer(read_only=True)
@@ -255,6 +329,8 @@ class DataProblemSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
 
+    analisis = AnalisisDataProblemNestedSerializer(read_only=True)
+
     class Meta:
         model = DataProblem
         fields = [
@@ -266,9 +342,9 @@ class DataProblemSerializer(serializers.ModelSerializer):
             'stakeholder', 'stakeholder_id',
             'departamentos', 'departamentos_ids',
             'procesos_negocio', 'procesos_negocio_ids',
-            'grupo', 'grupo_id', 'organizacion'
+            'grupo', 'grupo_id', 'organizacion',
+            'analisis'
         ]
 
     def create(self, validated_data):
         return super().create(validated_data)
-

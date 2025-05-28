@@ -46,7 +46,7 @@ function DatosOrgPage() {
             </Container>
             <Box
                 sx={{
-                position: "absolute",
+                position: "fixed",
                 bottom: 24,
                 right: 24,}}>
                 <NavBoton to="/" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>

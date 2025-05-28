@@ -37,8 +37,9 @@ function Header({ title = "Home User", onLogout }) {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            <MenuItem onClick={() => { handleMenuClose(); navigate("/tecnicas"); }}>Técnicas</MenuItem>
-            <MenuItem onClick={() => { handleMenuClose(); navigate("/page2"); }}>Page 2</MenuItem>
+            <MenuItem onClick={() => { handleMenuClose(); navigate("/tecnicas"); }}>Técnicas de Identificación</MenuItem>
+            <MenuItem onClick={() => { handleMenuClose(); navigate("/herramientas"); }}>Herramientas de Analisis</MenuItem>
+            <MenuItem onClick={() => { handleMenuClose(); navigate("/information"); }}>Información</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Menu>
         </div>

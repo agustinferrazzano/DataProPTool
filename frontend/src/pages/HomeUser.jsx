@@ -30,16 +30,16 @@ function HomeUser() {
               <NavBoton to="/dataproblems" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
                 A1. Identificación de Data Problems
               </NavBoton>
-              <NavBoton to="/pageA2" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
+              <NavBoton to="/analisis" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
                 A2. Análisis de Data Problems específicos
               </NavBoton>
-              <NavBoton to="/pageA3" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
+              <NavBoton to="/evaluacion" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
                 A3. Evaluación de Data Problems específicos
               </NavBoton>
-              <NavBoton to="/pageA4" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
+              <NavBoton to="/resultadosclasificacion" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
                 A4. Evaluación de Data Problems específicos
               </NavBoton>
-              <NavBoton to="/pageA5" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
+              <NavBoton to="/priorizacionprocesos" variant="contained" color="primary" sx={{ minWidth: 220, flex: "1 1 220px" }}>
                 A5. Priorización de Data Problems específicos
               </NavBoton>
             </Box>
