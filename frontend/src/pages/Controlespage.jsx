@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import Header from "../components/Header";
-import NavBoton from "../components/NavBoton";
 import GenericModal from "../components/GenericModal";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Agrega este import
 import {
   Box,
   Button,
@@ -138,18 +138,7 @@ function ControlesPage() {
           </Stack>
         </Paper>
       </Container>
-      <Box
-        sx={{
-          position: "fixed", // Cambia de absolute a fixed
-          bottom: 24,
-          right: 24,
-          zIndex: 1200, // Asegura que quede por encima del contenido
-        }}
-      >
-        <NavBoton to="/datos-org" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
-          Volver
-        </NavBoton>
-      </Box>
+      <BotonVolverFijo to="/datos-org" label="Volver" /> {/* Usa el componente aquí */}
 
       {/* Modal para cargar nueva política usando GenericModal */}
       <GenericModal

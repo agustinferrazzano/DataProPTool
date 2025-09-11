@@ -21,6 +21,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Header from "../components/Header";
+import BotonVolverFijo from "../components/BotonVolverFijo";
 
 function Tecnicas() {
   const [tecnicas, setTecnicas] = useState([]);
@@ -182,23 +183,7 @@ function Tecnicas() {
         </form>
       </Dialog>
 
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-        }}
-      >
-        <Button
-          variant="outlined"
-          color="secondary"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate("/")}
-          sx={{ minWidth: 120 }}
-        >
-          Volver
-        </Button>
-      </Box>
+      <BotonVolverFijo to="/" label="Volver" />
     </Box>
   );
 }

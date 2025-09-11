@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Box, Paper, Stack, Container } from "@mui/material";
 import Header from "../components/Header";
 import NavBoton from "../components/NavBoton";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Importa el componente
 
 function DatosOrgPage() {
     const navigate = useNavigate();
@@ -44,15 +45,7 @@ function DatosOrgPage() {
                     </Stack>
                 </Paper>
             </Container>
-            <Box
-                sx={{
-                position: "fixed",
-                bottom: 24,
-                right: 24,}}>
-                <NavBoton to="/" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
-                    Volver
-                </NavBoton>                    
-            </Box>
+            <BotonVolverFijo to="/" label="Volver" /> {/* Usa el componente aquí */}
         </Box>
     );
 }

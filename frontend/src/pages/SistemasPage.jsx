@@ -4,6 +4,7 @@ import api from "../api";
 import Header from "../components/Header";
 import NavBoton from "../components/NavBoton";
 import GenericModal from "../components/GenericModal";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Agrega este import
 import {
   Box,
   Button,
@@ -144,17 +145,7 @@ function SistemasPage() {
         </Paper>
       </Container>
 
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-        }}
-      >
-        <NavBoton to="/datos-org" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
-          Volver
-        </NavBoton>
-      </Box>
+      <BotonVolverFijo to="/datos-org" label="Volver" /> {/* Usa el componente aquí */}
 
       {/* Modal para cargar nuevo sistema usando GenericModal */}
       <GenericModal
@@ -165,8 +156,10 @@ function SistemasPage() {
         submitText="Cargar"
         cancelText="Cancelar"
         selectSection={
-          <>
-            <label htmlFor="repoSelect">Seleccionar Repositorios:</label>
+          <Box sx={{ mb: 2 }}>
+            <label htmlFor="repoSelect" style={{ display: "block", marginBottom: 8 }}>
+              Seleccionar Repositorios:
+            </label>
             <Select
               id="repoSelect"
               isMulti
@@ -183,8 +176,16 @@ function SistemasPage() {
               className="multi-select"
               classNamePrefix="select"
               placeholder="Selecciona uno o más repositorios"
+              menuPlacement="top" // <-- Esto hace que el menú se muestre hacia arriba
+              styles={{
+                menu: (provided) => ({
+                  ...provided,
+                  zIndex: 9999,
+                  maxHeight: 200,
+                }),
+              }}
             />
-          </>
+          </Box>
         }
       >
         <TextField

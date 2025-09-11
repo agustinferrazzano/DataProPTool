@@ -1,6 +1,10 @@
-import React, { useMemo } from "react";
-import { Box, Button, Paper, Typography, Container, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import React, { useMemo, useState } from "react";
+import { Box, Button, Paper, Typography, Container, Table, TableBody, TableCell, TableHead, TableRow, Collapse, IconButton } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import Header from "../components/Header";
+import BotonVolverFijo from "../components/BotonVolverFijo";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 // Genera una matriz de 20x10 con valores aleatorios entre 0 y 1, pero siempre los mismos para cada usuario
 function generarMatrizAleatoriaDeterministica(filas = 20, columnas = 10, semilla = 12345) {
@@ -16,6 +20,7 @@ function generarMatrizAleatoriaDeterministica(filas = 20, columnas = 10, semilla
 
 function PriorizacionProcesos() {
   const navigate = useNavigate();
+  const [openMatriz, setOpenMatriz] = useState(false);
 
   // Recupera los resultados de la matriz de clasificación
   const clasificacion = JSON.parse(sessionStorage.getItem("clasificacionDataProblems") || "null");
@@ -38,49 +43,86 @@ function PriorizacionProcesos() {
 
   return (
     <Box minHeight="100vh" bgcolor="#f7fafc">
-      <Container maxWidth="xl" sx={{ mt: 6, mb: 4 }}>
-        <Paper elevation={2} sx={{ p: 4, overflowX: "auto" }}>
-          <Typography variant="h4" color="primary" align="center" gutterBottom>
-            Prioriazación de Procesos
-          </Typography>
-          <Typography variant="subtitle1" align="center" sx={{ mb: 2 }}>
-            Cada celda contiene un valor aleatorio (0 a 1) pero siempre igual para cada usuario. El puntaje de cada fila es la suma de cada valor multiplicado por el resultado de la columna correspondiente.
-          </Typography>
-          {/* Matriz sin ordenar */}
-          <Table size="small" sx={{ mb: 4 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell><b>Fila</b></TableCell>
-                {[...Array(10)].map((_, idx) => (
-                  <TableCell key={idx} align="center">
-                    <b>Col {idx + 1}</b>
-                    <br />
-                    <span style={{ fontSize: 12, color: "#1976d2" }}>
-                      {typeof resultados[idx] === "number" ? Number(resultados[idx]).toFixed(2) : resultados[idx]}
-                    </span>
-                  </TableCell>
-                ))}
-                <TableCell align="center"><b>Puntaje</b></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filasConPuntaje.map((fila) => (
-                <TableRow key={fila.idx}>
-                  <TableCell>{fila.idx}</TableCell>
-                  {fila.valores.map((val, colIdx) => (
-                    <TableCell key={colIdx} align="center">
-                      {val.toFixed(3)}
-                    </TableCell>
-                  ))}
-                  <TableCell align="center">
-                    <b>{fila.puntaje.toFixed(3)}</b>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {/* Resultados ordenados */}
-          <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+      <Header title="Priorización de Procesos" />
+
+      {/* Contenedor expandible para la matriz */}
+      <Container maxWidth="lg" sx={{ mt: 6 }}>
+        <Paper
+          elevation={2}
+          sx={{
+            p: 2,
+            mb: 4,
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={() => setOpenMatriz((prev) => !prev)}
+        >
+          <Box maxWidth="lg" width="100%" mx="auto">
+            <Box display="flex" alignItems="flex-start" justifyContent="space-between">
+              <Box>
+                <Typography variant="h4" color="primary" gutterBottom>
+                  Priorización de Procesos
+                </Typography>
+                <Typography variant="subtitle1" color="black" gutterBottom>
+                  Si desea, haga click para ver la matriz de priorización
+                </Typography>
+              </Box>
+              <IconButton
+                size="large"
+                onClick={e => {
+                  e.stopPropagation();
+                  setOpenMatriz((prev) => !prev);
+                }}
+                aria-label={openMatriz ? "Ocultar matriz" : "Mostrar matriz"}
+                sx={{ ml: 2, mt: 1 }}
+              >
+                {openMatriz ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+              </IconButton>
+            </Box>
+            <Collapse in={openMatriz}>
+              <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+                <Table size="small" sx={{ mb: 4, width: "auto" }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><b>Fila</b></TableCell>
+                      {[...Array(10)].map((_, idx) => (
+                        <TableCell key={idx} align="center">
+                          <b>Col {idx + 1}</b>
+                          <br />
+                          <span style={{ fontSize: 12, color: "#1976d2" }}>
+                            {typeof resultados[idx] === "number" ? Number(resultados[idx]).toFixed(2) : resultados[idx]}
+                          </span>
+                        </TableCell>
+                      ))}
+                      <TableCell align="center"><b>Puntaje</b></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filasConPuntaje.map((fila) => (
+                      <TableRow key={fila.idx}>
+                        <TableCell>{fila.idx}</TableCell>
+                        {fila.valores.map((val, colIdx) => (
+                          <TableCell key={colIdx} align="center">
+                            {val.toFixed(3)}
+                          </TableCell>
+                        ))}
+                        <TableCell align="center">
+                          <b>{fila.puntaje.toFixed(3)}</b>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Box>
+            </Collapse>
+          </Box>
+        </Paper>
+      </Container>
+
+      {/* Contenedor para los resultados ordenados */}
+      <Container maxWidth="lg" sx={{ mb: 8, px: 0 }}> {/* Ahora ocupa el ancho máximo, sin padding extra */}
+        <Paper elevation={2} sx={{ p: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
             Filas ordenadas por puntaje (mayor a menor)
           </Typography>
           <Table size="small">
@@ -88,6 +130,7 @@ function PriorizacionProcesos() {
               <TableRow>
                 <TableCell><b>Fila</b></TableCell>
                 <TableCell align="center"><b>Puntaje</b></TableCell>
+                <TableCell align="left"><b>Recomendaciones</b></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -97,28 +140,17 @@ function PriorizacionProcesos() {
                   <TableCell align="center">
                     <b>{fila.puntaje.toFixed(3)}</b>
                   </TableCell>
+                  <TableCell align="left">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Paper>
       </Container>
-    <Box
-        sx={{
-        position: "fixed",
-        bottom: 24,
-        right: 24,
-        }}
-    >
-        <Button
-        variant="outlined"
-        color="secondary"
-        onClick={() => navigate("/")}
-        sx={{ minWidth: 120 }}
-        >
-        Volver
-        </Button>
-    </Box>
+
+      <BotonVolverFijo to="/" label="Volver" />
     </Box>
   );
 }

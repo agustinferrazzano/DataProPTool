@@ -4,6 +4,7 @@ import api from "../api";
 import Header from "../components/Header";
 import NavBoton from "../components/NavBoton";
 import GenericModal from "../components/GenericModal";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Agrega este import
 import {
   Box,
   Button,
@@ -124,17 +125,7 @@ function RepositorioPage() {
         </Paper>
       </Container>
 
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-        }}
-      >
-        <NavBoton to="/datos-org" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
-          Volver
-        </NavBoton>
-      </Box>
+      <BotonVolverFijo to="/datos-org" label="Volver" /> {/* Usa el componente aquí */}
 
       {/* Modal para cargar nuevo repositorio usando GenericModal */}
       <GenericModal

@@ -23,8 +23,11 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Header from "../components/Header";
 import NavBoton from "../components/NavBoton";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Agrega este import
 
 function IdentificaciondeDataProblems() {
   const [dataProblems, setDataProblems] = useState([]);
@@ -121,6 +124,50 @@ function IdentificaciondeDataProblems() {
               Cargar Nuevo Data Problem
             </Button>
           </Stack>
+          {/* Fila de botones de navegación */}
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ mb: 3, width: "100%" }}
+            justifyContent="space-between"
+          >
+            <Box display="flex" alignItems="center">
+              <Typography variant="body2" sx={{ mr: 1, minWidth: 90 }}>
+                Explicación del Paso:
+              </Typography>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => navigate("/informacion")}
+              >
+                Información
+              </Button>
+            </Box>
+            <Box display="flex" alignItems="center">
+              <Typography variant="body2" sx={{ mr: 1, minWidth: 90 }}>
+                Ver las posibles técnicas a utilizar:
+              </Typography>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => navigate("/tecnicas")}
+              >
+                Técnicas
+              </Button>
+            </Box>
+            <Box display="flex" alignItems="center">
+              <Typography variant="body2" sx={{ mr: 1, minWidth: 90 }}>
+                Cargar nuevos datos faltantes:
+              </Typography>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => navigate("/datos-org")}
+              >
+                Carga de Datos
+              </Button>
+            </Box>
+          </Stack>
           <Divider sx={{ mb: 3 }} />
           {groupedByGroup.length > 0 && groupedByGroup.some((g) => g.problems.length > 0) ? (
             groupedByGroup.map((group, idx) =>
@@ -133,6 +180,7 @@ function IdentificaciondeDataProblems() {
                     <Table>
                       <TableHead>
                         <TableRow>
+                          <TableCell />
                           <TableCell>Nombre</TableCell>
                           <TableCell>Descripción</TableCell>
                           <TableCell>Fuente ID</TableCell>
@@ -160,17 +208,7 @@ function IdentificaciondeDataProblems() {
         </Paper>
       </Container>
 
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-        }}
-      >
-        <NavBoton to="/" variant="outlined" color="secondary" sx={{ minWidth: 120 }}>
-          Volver
-        </NavBoton>
-      </Box>
+      <BotonVolverFijo to="/" label="Volver" /> {/* Usa el componente aquí */}
     </Box>
   );
 }
@@ -186,23 +224,38 @@ function AccordionTableRow({ problem }) {
         sx={{ cursor: "pointer" }}
         onClick={() => setExpanded((prev) => !prev)}
       >
-        <TableCell>{problem.nombre}</TableCell>
-        <TableCell>
+        <TableCell width={40} align="center">
+          {expanded ? (
+            <KeyboardArrowUpIcon sx={{ transition: "transform 0.2s" }} />
+          ) : (
+            <KeyboardArrowDownIcon sx={{ transition: "transform 0.2s" }} />
+          )}
+        </TableCell>
+        <TableCell sx={{ minWidth: 180, maxWidth: 260, fontWeight: 500 }}>
+          {problem.nombre}
+        </TableCell>
+        <TableCell sx={{ minWidth: 220, maxWidth: 350 }}>
           {problem.descripcion.length > 60 && !expanded
             ? problem.descripcion.slice(0, 60) + "..."
             : problem.descripcion}
         </TableCell>
-        <TableCell>{problem.fuente_identificacion_nombre}</TableCell>
-        <TableCell>{problem.fuente_confirmacion_nombre}</TableCell>
-        <TableCell>{problem.stakeholder?.nombre || "N/A"}</TableCell>
-        <TableCell>
+        <TableCell sx={{ minWidth: 100, maxWidth: 140 }}>
+          {problem.fuente_identificacion_nombre}
+        </TableCell>
+        <TableCell sx={{ minWidth: 100, maxWidth: 140 }}>
+          {problem.fuente_confirmacion_nombre}
+        </TableCell>
+        <TableCell sx={{ minWidth: 140, maxWidth: 220 }}>
+          {problem.stakeholder?.nombre || "N/A"}
+        </TableCell>
+        <TableCell sx={{ minWidth: 120, maxWidth: 200 }}>
           {problem.departamentos?.length > 0
             ? problem.departamentos.map((dep) => (
                 <Chip key={dep.id} label={dep.nombre} size="small" sx={{ mr: 0.5 }} />
               ))
             : "N/A"}
         </TableCell>
-        <TableCell>
+        <TableCell sx={{ minWidth: 120, maxWidth: 200 }}>
           {problem.procesos_negocio?.length > 0
             ? problem.procesos_negocio.map((proc) => (
                 <Chip key={proc.id} label={proc.nombre} size="small" sx={{ mr: 0.5 }} />
@@ -212,7 +265,7 @@ function AccordionTableRow({ problem }) {
       </TableRow>
       {expanded && (
         <TableRow>
-          <TableCell colSpan={7} sx={{ bgcolor: "#f5f5f5" }}>
+          <TableCell colSpan={8} sx={{ bgcolor: "#f5f5f5" }}>
             <Box>
               <Typography variant="subtitle2" color="primary">
                 Descripción Completa:
@@ -241,11 +294,8 @@ function AccordionTableRow({ problem }) {
             </Box>
           </TableCell>
         </TableRow>
-        
       )}
-
     </>
-    
   );
 }
 

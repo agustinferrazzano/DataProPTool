@@ -22,6 +22,7 @@ import BuildIcon from "@mui/icons-material/Build";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Header from "../components/Header";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Agrega este import
 
 function HerramientasDeAnalisis() {
   const [herramientas, setHerramientas] = useState([]);
@@ -182,23 +183,7 @@ function HerramientasDeAnalisis() {
         </form>
       </Dialog>
 
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-        }}
-      >
-        <Button
-          variant="outlined"
-          color="secondary"
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate("/")}
-          sx={{ minWidth: 120 }}
-        >
-          Volver
-        </Button>
-      </Box>
+      <BotonVolverFijo to="/" label="Volver" /> {/* Usa el componente aquí */}
     </Box>
   );
 }

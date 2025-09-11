@@ -20,6 +20,7 @@ import {
 import Header from "../components/Header";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import api from "../api";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Agrega este import
 
 function AnalizarDataProblems() {
   const { id } = useParams();
@@ -109,6 +110,7 @@ function AnalizarDataProblems() {
         <Container maxWidth="md" sx={{ mt: 6 }}>
           <Typography>Cargando información...</Typography>
         </Container>
+        <BotonVolverFijo to="/analisis" label="Volver" />
       </Box>
     );
   }
@@ -229,14 +231,6 @@ function AnalizarDataProblems() {
               </FormGroup>
               <Stack direction="row" spacing={2} justifyContent="flex-end">
                 <Button
-                  variant="outlined"
-                  color="secondary"
-                  startIcon={<ArrowBackIcon />}
-                  onClick={() => navigate("/analisis")}
-                >
-                  Volver
-                </Button>
-                <Button
                   variant="contained"
                   color="primary"
                   type="submit"
@@ -248,6 +242,7 @@ function AnalizarDataProblems() {
           </form>
         </Paper>
       </Container>
+      <BotonVolverFijo to="/analisis" label="Volver" /> {/* Usa el componente aquí */}
     </Box>
   );
 }

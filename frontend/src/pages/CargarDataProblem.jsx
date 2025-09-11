@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import api from "../api";
 import Header from "../components/Header";
+import BotonVolverFijo from "../components/BotonVolverFijo";
 import {
   Box,
   Button,
@@ -13,6 +14,37 @@ import {
   TextField,
   Grid,
 } from "@mui/material";
+
+// Custom styles for react-select to set solid background for options
+const selectStyles = {
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected
+      ? "#e3f2fd"
+      : state.isFocused
+      ? "#f1f1f1"
+      : "#fff",
+    color: "#222",
+  }),
+  menu: (provided) => ({
+    ...provided,
+    backgroundColor: "#fff",
+    zIndex: 9999,
+  }),
+  control: (provided) => ({
+    ...provided,
+    backgroundColor: "#fff",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#222",
+  }),
+  multiValue: (provided) => ({
+    ...provided,
+    backgroundColor: "#e3f2fd",
+    color: "#222",
+  }),
+};
 
 function CargarDataProblem() {
   const [name, setName] = useState("");
@@ -155,6 +187,7 @@ function CargarDataProblem() {
                     .flatMap(group => group.options)
                     .find(opt => opt.value === selectedIdentificationSource) || null
                 }
+                styles={selectStyles}
               />
               <Typography variant="subtitle2">Técnica de Identificación:</Typography>
               <Select
@@ -172,6 +205,7 @@ function CargarDataProblem() {
                     .map((technique) => ({ value: technique.id, label: technique.titulo }))
                     .find(opt => opt.value === selectedIdentificationTechnique) || null
                 }
+                styles={selectStyles}
               />
               <Typography variant="subtitle2">Fuente de Confirmación:</Typography>
               <Select
@@ -186,6 +220,7 @@ function CargarDataProblem() {
                     .flatMap(group => group.options)
                     .find(opt => opt.value === selectedConfirmationSource) || null
                 }
+                styles={selectStyles}
               />
               <Typography variant="subtitle2">Técnica de Confirmación:</Typography>
               <Select
@@ -203,6 +238,7 @@ function CargarDataProblem() {
                     .map((technique) => ({ value: technique.id, label: technique.titulo }))
                     .find(opt => opt.value === selectedConfirmationTechnique) || null
                 }
+                styles={selectStyles}
               />
               <TextField
                 label="Descripción de la Fuente"
@@ -231,6 +267,7 @@ function CargarDataProblem() {
                 value={departments
                   .filter((department) => selectedDepartments.includes(department.id))
                   .map((department) => ({ value: department.id, label: department.nombre }))}
+                closeMenuOnSelect={false} // <-- Esto mantiene abierto el menú
               />
               <Typography variant="subtitle2">Seleccionar Procesos de Negocio:</Typography>
               <Select
@@ -249,6 +286,7 @@ function CargarDataProblem() {
                 value={businessProcesses
                   .filter((process) => selectedProcesses.includes(process.id))
                   .map((process) => ({ value: process.id, label: process.nombre }))}
+                closeMenuOnSelect={false} // <-- Esto mantiene abierto el menú
               />
               <Typography variant="subtitle2">Seleccionar Stakeholder:</Typography>
               <Select
@@ -282,13 +320,6 @@ function CargarDataProblem() {
               />
               <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
                 <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => navigate("/dataproblems")}
-                >
-                  Cancelar
-                </Button>
-                <Button
                   variant="contained"
                   color="primary"
                   type="submit"
@@ -300,6 +331,7 @@ function CargarDataProblem() {
           </Box>
         </Paper>
       </Container>
+      <BotonVolverFijo to="/dataproblems" label="Cancelar" />
     </Box>
   );
 }

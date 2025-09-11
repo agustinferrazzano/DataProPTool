@@ -30,9 +30,6 @@ function GenericModal({
             {children}
             {selectSection && (
               <Stack spacing={1}>
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  Seleccionar Repositorios:
-                </Typography>
                 <Box sx={{
                   ".multi-select__control": {
                     borderRadius: 2,

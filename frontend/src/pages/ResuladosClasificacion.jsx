@@ -1,6 +1,8 @@
 import React from "react";
 import { Box, Button, Typography, Paper, Container, Table, TableBody, TableCell, TableHead, TableRow, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import Header from "../components/Header";
+import BotonVolverFijo from "../components/BotonVolverFijo";
 
 function ResultadosClasificacionDataProblems() {
   const navigate = useNavigate();
@@ -9,6 +11,7 @@ function ResultadosClasificacionDataProblems() {
   if (!clasificacion || !clasificacion.matrix || !clasificacion.dataProblems) {
     return (
       <Box minHeight="100vh" bgcolor="#f7fafc">
+        <Header title="Clasificación de Data Problems" />
         <Container maxWidth="md" sx={{ mt: 8 }}>
           <Paper elevation={2} sx={{ p: 4, textAlign: "center" }}>
             <Typography variant="h5" color="primary" gutterBottom>
@@ -22,16 +25,10 @@ function ResultadosClasificacionDataProblems() {
               >
                 Realizar Clasificación
               </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => navigate("/")}
-              >
-                Volver al Home
-              </Button>
             </Stack>
           </Paper>
         </Container>
+        <BotonVolverFijo to="/" label="Volver" /> {/* Usa el componente aquí */}
       </Box>
     );
   }
@@ -45,6 +42,7 @@ function ResultadosClasificacionDataProblems() {
 
   return (
     <Box minHeight="100vh" bgcolor="#f7fafc">
+      <Header title="Clasificación de Data Problems" />
       <Container maxWidth="lg" sx={{ mt: 6, mb: 4 }}>
         <Paper elevation={2} sx={{ p: 4 }}>
           <Typography variant="h4" color="primary" align="center" gutterBottom>
@@ -93,22 +91,7 @@ function ResultadosClasificacionDataProblems() {
           </Table>
         </Paper>
       </Container>
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-        }}
-      >
-        <Button
-          variant="outlined"
-          color="secondary"
-          onClick={() => navigate("/")}
-          sx={{ minWidth: 120 }}
-        >
-          Volver
-        </Button>
-      </Box>
+      <BotonVolverFijo to="/" label="Volver" /> {/* Usa el componente aquí */}
     </Box>
   );
 }

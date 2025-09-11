@@ -4,7 +4,9 @@ import DataProblemSelector from "../components/DataProblemSelector";
 import AggregationFunctionSelector from "../components/AggregationFunctionSelector";
 import RolesSelector from "../components/RolesSelector";
 import ClassificationMatrix from "../components/ClassificationMatrix";
+import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Importa el componente
 
 const STEPS = ["Selección", "Clasificación"];
 
@@ -33,11 +35,30 @@ function ClasificacionDataProblems() {
     }
   }, [step, problemsData]);
 
-  // Calcular totales por columna según función
+  // Obtiene los resultados de evaluación de sessionStorage
+  const getEvaluacionValor = (problemId) => {
+    const evaluaciones = JSON.parse(sessionStorage.getItem("evaluacionDataProblems") || "[]");
+    const evaluacion = evaluaciones.find(e => String(e.dataProblemId) === String(problemId));
+    // Usar resultadoNumerico si existe, si no intentar convertir resultado
+    if (evaluacion) {
+      if (typeof evaluacion.resultadoNumerico === "number" && !isNaN(evaluacion.resultadoNumerico)) {
+        return evaluacion.resultadoNumerico;
+      }
+      if (!isNaN(Number(evaluacion.resultado))) {
+        return Number(evaluacion.resultado);
+      }
+    }
+    return 0;
+  };
+
+  // Calcular totales por columna según función, usando el resultado de la evaluación como peso
   const handleCalculate = () => {
     let totals = [];
+    // Calcula el "peso" de cada fila según la evaluación
+    const pesos = problemsData.map(dp => getEvaluacionValor(dp.id));
     for (let col = 0; col < 10; col++) {
-      const colVals = matrix.map(row => row[col] ? 1 : 0);
+      // Multiplica cada celda por el peso de la fila (evaluación)
+      const colVals = matrix.map((row, rowIdx) => (row[col] ? 1 : 0) * (pesos[rowIdx] || 0));
       let val = 0;
       if (aggFunc === "media") {
         val = colVals.reduce((a, b) => a + b, 0) / (colVals.length || 1);
@@ -69,6 +90,7 @@ function ClasificacionDataProblems() {
 
   return (
     <Box minHeight="100vh" bgcolor="#f7fafc">
+      <Header title="Clasificación de Data Problems" />
       <Container maxWidth="lg" sx={{ mt: 6, mb: 4 }}>
         <Paper elevation={2} sx={{ p: 4, position: "relative" }}>
           <Stepper activeStep={step} sx={{ mb: 4 }}>
@@ -134,27 +156,11 @@ function ClasificacionDataProblems() {
                   </Button>
                 </Stack>
               </Box>
-              {/* Botón fijo para ir a resultados */}
-              <Box
-                sx={{
-                  position: "fixed",
-                  bottom: 24,
-                  right: 24,
-                  zIndex: 1200,
-                }}
-              >
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => navigate("/resultadosclasificacion")}
-                >
-                  Ir a Resultados
-                </Button>
-              </Box>
             </>
           )}
         </Paper>
       </Container>
+      <BotonVolverFijo to="/resultadosclasificacion" label="Ir a Resultados" />
     </Box>
   );
 }

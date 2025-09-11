@@ -27,7 +27,7 @@ function Header({ title = "Home User", onLogout }) {
         <div>
           <Button
             color="primary"
-            variant="outlined"
+            variant="text"
             onClick={handleMenuOpen}
           >
             Menu

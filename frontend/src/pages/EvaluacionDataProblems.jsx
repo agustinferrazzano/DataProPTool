@@ -31,19 +31,22 @@ import {
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import AddIcon from "@mui/icons-material/Add";
 import Header from "../components/Header";
 import api from "../api";
+import BotonVolverFijo from "../components/BotonVolverFijo"; // Agrega este import
 
-// Componente para seleccionar técnica de evaluación
+// MoSCoW ahora tiene valor numérico
 const EVALUATION_TECHNIQUES = [
   {
     key: "moscow",
     label: "MoSCoW",
     values: [
-      { value: "M", label: "Must have" },
-      { value: "S", label: "Should have" },
-      { value: "C", label: "Could have" },
-      { value: "W", label: "Won't have" },
+      { value: 3, label: "Must have" },
+      { value: 2, label: "Should have" },
+      { value: 1, label: "Could have" },
+      { value: 0, label: "Won't have" },
     ],
   },
   {
@@ -64,15 +67,17 @@ const EVALUATION_TECHNIQUES = [
   },
 ];
 
-function EvaluationTechniqueSelector({ selected, onChange }) {
+function EvaluationTechniqueSelector({ selected, onChange, buttonProps }) {
   const [anchorEl, setAnchorEl] = useState(null);
-
   const handleClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
   return (
     <>
-      <Button variant="outlined" color="primary" onClick={handleClick} sx={{ mr: 2 }}>
+      <Button
+        onClick={handleClick}
+        {...buttonProps}
+      >
         Técnica: {EVALUATION_TECHNIQUES.find(t => t.key === selected)?.label || "Seleccionar"}
       </Button>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
@@ -109,21 +114,22 @@ function TechniqueValuesDialog({ open, onClose, techniqueKey, values, onSave }) 
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Editar significados de la técnica</DialogTitle>
+      <DialogTitle>Editar valores de la técnica</DialogTitle>
       <DialogContent>
         {localValues.map((v, idx) => (
-          <Box key={idx} sx={{ mb: 2 }}>
+          <Box key={idx} sx={{ mb: 2, display: "flex", alignItems: "center" }}>
             <TextField
-              label="Valor"
+              label="Valor numérico"
+              type="number"
               value={v.value}
-              disabled
-              sx={{ mr: 2, width: 100 }}
+              onChange={e => handleValueChange(idx, "value", Number(e.target.value))}
+              sx={{ mr: 2, width: 140 }}
             />
             <TextField
               label="Significado"
               value={v.label}
-              onChange={(e) => handleValueChange(idx, "label", e.target.value)}
-              sx={{ width: 300 }}
+              disabled
+              sx={{ width: 200 }}
             />
           </Box>
         ))}
@@ -145,8 +151,9 @@ function TechniqueValuesDialog({ open, onClose, techniqueKey, values, onSave }) 
   );
 }
 
-function Row({ row, evalTechnique, evalValues }) {
-  const [open, setOpen] = useState(false);
+// Componente para una fila expandible de la tabla de evaluación
+function AccordionTableRowEvaluacion({ row, evalTechnique, evalValues, onSaveEvaluacion }) {
+  const [expanded, setExpanded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [evaluadores, setEvaluadores] = useState([]);
   const [nuevoNombre, setNuevoNombre] = useState("");
@@ -154,28 +161,41 @@ function Row({ row, evalTechnique, evalValues }) {
 
   // Calcular media local según técnica
   let media = "-";
+  let mediaNumerica = 0;
   if (evaluadores.length > 0) {
-    if (evalTechnique === "moscow") {
-      // Muestra el valor más frecuente
-      const freq = {};
-      evaluadores.forEach(ev => {
-        freq[ev.valor] = (freq[ev.valor] || 0) + 1;
-      });
-      const max = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
-      media = max ? evalValues.find(v => v.value === max[0])?.label || max[0] : "-";
-    } else if (evalTechnique === "numerical") {
-      // Promedio numérico
+    if (evalTechnique === "moscow" || evalTechnique === "numerical") {
       const avg = (
-        evaluadores.reduce((acc, curr) => acc + Number(curr.valor), 0) /
-        evaluadores.length
-      ).toFixed(2);
-      media = avg;
+        evaluadores.reduce((acc, curr) => acc + Number(curr.valor), 0) / evaluadores.length
+      );
+      const rounded = Math.round(avg);
+      const label = evalValues.find(v => v.value === rounded)?.label || avg.toFixed(2);
+      media = label;
+      mediaNumerica = avg;
     } else if (evalTechnique === "hundred") {
-      // Suma total asignada (o promedio)
       const total = evaluadores.reduce((acc, curr) => acc + Number(curr.valor), 0);
       media = total;
+      mediaNumerica = total;
     }
   }
+
+  // Guardar evaluación en sessionStorage cada vez que cambia
+  useEffect(() => {
+    if (evaluadores.length > 0) {
+      const evaluacion = {
+        dataProblemId: row.id,
+        dataProblemNombre: row.nombre,
+        tecnica: evalTechnique,
+        evaluadores,
+        resultado: media,
+        resultadoNumerico: mediaNumerica,
+      };
+      const prev = JSON.parse(sessionStorage.getItem("evaluacionDataProblems") || "[]");
+      const filtrado = prev.filter(e => e.dataProblemId !== row.id);
+      const actualizado = [...filtrado, evaluacion];
+      sessionStorage.setItem("evaluacionDataProblems", JSON.stringify(actualizado));
+      if (onSaveEvaluacion) onSaveEvaluacion(evaluacion);
+    }
+  }, [evaluadores, evalTechnique, evalValues, row.id, row.nombre, media, mediaNumerica, onSaveEvaluacion]);
 
   const handleAgregarEvaluador = (e) => {
     e.preventDefault();
@@ -194,32 +214,43 @@ function Row({ row, evalTechnique, evalValues }) {
 
   return (
     <>
-      <TableRow hover>
-        <TableCell>
-          <IconButton size="small" onClick={() => setOpen((prev) => !prev)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+      <TableRow
+        hover
+        sx={{ cursor: "pointer" }}
+        onClick={() => setExpanded((prev) => !prev)}
+      >
+        <TableCell width={40} align="center">
+          <ExpandMoreIcon
+            sx={{
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s",
+            }}
+          />
         </TableCell>
-        <TableCell>{row.nombre}</TableCell>
-        <TableCell>
-          {row.descripcion.length > 60
+        <TableCell sx={{ minWidth: 180, maxWidth: 260, fontWeight: 500 }}>
+          {row.nombre}
+        </TableCell>
+        <TableCell sx={{ minWidth: 220, maxWidth: 350 }}>
+          {row.descripcion.length > 60 && !expanded
             ? row.descripcion.slice(0, 60) + "..."
             : row.descripcion}
         </TableCell>
-        <TableCell>{row.fuente_identificacion_nombre}</TableCell>
-        <TableCell>
-          {row.causa_raiz && row.causa_raiz.length > 60
+        <TableCell sx={{ minWidth: 100, maxWidth: 140 }}>
+          {row.fuente_identificacion_nombre}
+        </TableCell>
+        <TableCell sx={{ minWidth: 180, maxWidth: 300 }}>
+          {row.causa_raiz && row.causa_raiz.length > 60 && !expanded
             ? row.causa_raiz.slice(0, 60) + "..."
             : row.causa_raiz || "N/A"}
         </TableCell>
-        <TableCell>
+        <TableCell sx={{ minWidth: 100, maxWidth: 140 }}>
           {row.data_stages?.length > 0
             ? row.data_stages.map((ds) => (
                 <Chip key={ds.id} label={ds.titulo} size="small" sx={{ mr: 0.5 }} />
               ))
             : "N/A"}
         </TableCell>
-        <TableCell>
+        <TableCell sx={{ minWidth: 80, maxWidth: 120 }}>
           {row.data_qualities?.length > 0
             ? row.data_qualities.map((dq) => (
                 <Chip key={dq.id} label={dq.titulo} size="small" sx={{ mr: 0.5 }} />
@@ -228,44 +259,49 @@ function Row({ row, evalTechnique, evalValues }) {
         </TableCell>
         <TableCell align="center">
           <b>{media}</b>
+          {evalTechnique === "moscow" && (
+            <span style={{ fontSize: 12, color: "#1976d2", marginLeft: 4 }}>
+              ({mediaNumerica.toFixed(2)})
+            </span>
+          )}
         </TableCell>
       </TableRow>
-      <TableRow>
-        <TableCell colSpan={11} sx={{ p: 0, border: 0 }}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ m: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Descripción completa:
+      {expanded && (
+        <TableRow>
+          <TableCell colSpan={8} sx={{ bgcolor: "#f5f5f5", px: 4 }}>
+            <Box>
+              <Typography variant="subtitle2" color="primary">
+                Descripción Completa:
               </Typography>
               <Typography variant="body2" sx={{ mb: 2 }}>
                 {row.descripcion}
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle2" color="primary">
                 Causa raíz completa:
               </Typography>
               <Typography variant="body2" sx={{ mb: 2 }}>
                 {row.causa_raiz || "N/A"}
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle2" color="primary">
                 Fuente de Identificación:
               </Typography>
               <Typography variant="body2" sx={{ mb: 2 }}>
                 {row.fuente_identificacion_nombre}
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle2" color="primary">
                 Fuente de Confirmación:
               </Typography>
               <Typography variant="body2" sx={{ mb: 2 }}>
                 {row.fuente_confirmacion_nombre}
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle2" color="primary">
                 Técnicas utilizadas:
               </Typography>
               <Typography variant="body2" sx={{ mb: 2 }}>
                 {row.tecnicas_utilizadas_completo}
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
-                Data Stage:
+              <Typography variant="subtitle2" color="primary">
+                Etapa del Dato:
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
                 {row.data_stages?.length > 0
@@ -274,8 +310,8 @@ function Row({ row, evalTechnique, evalValues }) {
                     ))
                   : <Typography variant="body2">N/A</Typography>}
               </Stack>
-              <Typography variant="subtitle1" gutterBottom>
-                Data Quality:
+              <Typography variant="subtitle2" color="primary">
+                Dimensiíon de Calidad:
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
                 {row.data_qualities?.length > 0
@@ -315,7 +351,7 @@ function Row({ row, evalTechnique, evalValues }) {
                         select
                         label="Valor"
                         value={nuevoValor}
-                        onChange={(e) => setNuevoValor(e.target.value)}
+                        onChange={(e) => setNuevoValor(Number(e.target.value))}
                         required
                         fullWidth
                         sx={{ mb: 2 }}
@@ -397,9 +433,9 @@ function Row({ row, evalTechnique, evalValues }) {
                 </Box>
               </Drawer>
             </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
+          </TableCell>
+        </TableRow>
+      )}
     </>
   );
 }
@@ -409,6 +445,7 @@ function EvaluacionDataProblems() {
   const [evalTechnique, setEvalTechnique] = useState("moscow");
   const [evalValues, setEvalValues] = useState(EVALUATION_TECHNIQUES[0].values);
   const [valuesDialogOpen, setValuesDialogOpen] = useState(false);
+  const [evaluacionesGuardadas, setEvaluacionesGuardadas] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -449,6 +486,10 @@ function EvaluacionDataProblems() {
       .catch(() => {
         setRows([]);
       });
+
+    // Cargar evaluaciones guardadas al entrar
+    const guardadas = JSON.parse(sessionStorage.getItem("evaluacionDataProblems") || "[]");
+    setEvaluacionesGuardadas(guardadas);
   }, []);
 
   // Cambia los valores cuando cambia la técnica
@@ -457,23 +498,64 @@ function EvaluacionDataProblems() {
     setEvalValues(found ? found.values : []);
   }, [evalTechnique]);
 
+  // Función para manejar el guardado de evaluaciones (opcional, para lógica extra)
+  const handleSaveEvaluacion = (evaluacion) => {
+    // Actualiza la lista de evaluaciones guardadas
+    const guardadas = JSON.parse(sessionStorage.getItem("evaluacionDataProblems") || "[]");
+    setEvaluacionesGuardadas(guardadas);
+  };
+
   return (
     <Box minHeight="100vh" bgcolor="#f7fafc">
       <Header title="Evaluación de Data Problems" />
       <Container maxWidth="lg" sx={{ mt: 6, mb: 4 }}>
         <Paper elevation={2} sx={{ p: 4 }}>
-          <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+            <Typography variant="h4" color="primary">
+              Evaluación de Data Problems
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={2} sx={{ mb: 3, position: "relative" }}>
             <EvaluationTechniqueSelector
               selected={evalTechnique}
               onChange={setEvalTechnique}
+              buttonProps={{
+                variant: "contained",
+                color: "primary",
+                startIcon: <AddIcon />,
+                sx: { minWidth: 220 }
+              }}
             />
             <Button
-              variant="outlined"
+              variant="contained"
               color="secondary"
               onClick={() => setValuesDialogOpen(true)}
+              sx={{ minWidth: 180 }}
             >
-              Editar significados de valores
+              Editar valores de técnica
             </Button>
+            {/* Botón de información alineado a la derecha */}
+            <Box
+              display="flex"
+              alignItems="center"
+              sx={{
+                position: "absolute",
+                right: 0,
+                top: 0,
+                height: "100%",
+              }}
+            >
+              <Typography variant="body2" sx={{ mr: 1, minWidth: 90 }}>
+                Explicación del Paso:
+              </Typography>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => navigate("/informacion")}
+              >
+                Información
+              </Button>
+            </Box>
           </Stack>
           <TechniqueValuesDialog
             open={valuesDialogOpen}
@@ -491,19 +573,20 @@ function EvaluacionDataProblems() {
                   <TableCell>Descripción</TableCell>
                   <TableCell>Fuente Identificación</TableCell>
                   <TableCell>Causa Raíz</TableCell>
-                  <TableCell>Data Stage</TableCell>
-                  <TableCell>Data Quality</TableCell>
+                  <TableCell>Etapa del Dato</TableCell>
+                  <TableCell>Dimensión de Calidad</TableCell>
                   <TableCell align="center">Resultado</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {rows.length > 0 ? (
                   rows.map((row) => (
-                    <Row
+                    <AccordionTableRowEvaluacion
                       key={row.id}
                       row={row}
                       evalTechnique={evalTechnique}
                       evalValues={evalValues}
+                      onSaveEvaluacion={handleSaveEvaluacion}
                     />
                   ))
                 ) : (
@@ -518,22 +601,7 @@ function EvaluacionDataProblems() {
           </TableContainer>
         </Paper>
       </Container>
-      <Box
-        sx={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-        }}
-      >
-        <Button
-          variant="outlined"
-          color="secondary"
-          onClick={() => navigate("/")}
-          sx={{ minWidth: 120 }}
-        >
-          Volver
-        </Button>
-      </Box>
+      <BotonVolverFijo /> {/* Usa el componente aquí */}
     </Box>
   );
 }
