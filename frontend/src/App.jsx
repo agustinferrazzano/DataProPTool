@@ -18,7 +18,7 @@ import CargarDataProblem from './pages/CargarDataProblem';
 import Tecnicas from './pages/Tecnicas';
 import AnalisisdeDataProblems from './pages/AnalisisdeDataProblems';
 import AnalizarDataProblems from './pages/AnalizarDataProblems';
-import Information from './pages/information';
+import Information from './pages/Information';
 import EvaluacionDataProblems from './pages/EvaluacionDataProblems';
 import HerramientasDeAnalisis from './pages/HerramientasAnalisis';
 import ResultadosClasificacionDataProblems from './pages/ResuladosClasificacion';
