@@ -26,6 +26,9 @@ jobs:
   # Este job se encargará de ejecutar Oxlint, que es una herramienta de linting para verificar la calidad del código
   Oxlint:
     runs-on: ubuntu-latest
+    defaults:
+        run:
+            working-directory: ./frontend
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
