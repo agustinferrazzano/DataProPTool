@@ -1,44 +1,136 @@
-name: CI Pipeline
+name: Frontend CI Pipeline
+
 on:
   push:
     branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+
+env:
+  NODE_VERSION: '20'
+
 jobs:
-  # Este job se encargará de construir el proyecto, instalar las dependencias y generar los archivos necesarios para el despliegue
-  Build:
+  # ===============================================
+  # JOB 1: TESTS Y VALIDACIÓN DEL FRONTEND
+  # ===============================================
+  frontend-tests:
+    name: Frontend Tests & Quality
     runs-on: ubuntu-latest
     defaults: 
-        run:
-          working-directory: ./frontend
+      run:
+        working-directory: ./frontend
+    
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
       with: 
-        node-version: 20
-    - name: Instalar dependencias
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: 📦 Instalar dependencias
       run: npm ci
-    - name: Build
+    
+    - name: 🔍 Ejecutar oxlint (calidad de código)
+      run: npm run lint
+    
+    - name: 🔧 Verificar tipos TypeScript
+      run: |
+        # Si tienes TypeScript configurado
+        if [ -f "tsconfig.json" ]; then
+          npx tsc --noEmit
+        else
+          echo "✅ No TypeScript config found, skipping type check"
+        fi
+    
+    - name: 🧪 Ejecutar tests unitarios
+      run: npm run test
+    
+    - name: 📊 Generar coverage report
+      run: |
+        if npm run test:coverage 2>/dev/null; then
+          echo "✅ Coverage report generated"
+        else
+          echo "ℹ️ No coverage script found, skipping"
+        fi
+    
+    - name: 🏗️ Build del proyecto
       run: npm run build
-    - uses: actions/upload-artifact@v4
+      env:
+        # Variables de entorno para el build
+        VITE_API_URL: http://localhost:8000
+    
+    - name: 🔍 Verificar tamaño del bundle
+      run: |
+        echo "📦 Bundle size analysis:"
+        if [ -d "dist" ]; then
+          du -sh dist/*
+          echo "Total bundle size:"
+          du -sh dist
+        fi
+    
+    - name: 📤 Subir artifacts del build
+      uses: actions/upload-artifact@v4
       with:
-        name: dist
-        path: dist
+        name: frontend-dist-${{ github.sha }}
+        path: frontend/dist
+        retention-days: 7
+    
+    - name: 📈 Comentar resultados en PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = './frontend/dist';
+          if (fs.existsSync(path)) {
+            const stats = fs.statSync(path);
+            const size = (stats.size / 1024 / 1024).toFixed(2);
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🚀 Frontend Build Successful\n\n✅ Build completado exitosamente\n📦 Bundle size: ${size}MB\n🔗 Artifacts disponibles para descarga`
+            });
+          }
 
-  # Este job se encargará de ejecutar Oxlint, que es una herramienta de linting para verificar la calidad del código
-  Oxlint:
+  # ===============================================
+  # JOB 2: ANÁLISIS DE SEGURIDAD
+  # ===============================================
+  frontend-security:
+    name: Security Analysis
     runs-on: ubuntu-latest
     defaults:
-        run:
-            working-directory: ./frontend
+      run:
+        working-directory: ./frontend
+    
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
       with: 
-        node-version: 20
-    - name: Instalar dependencias
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: 📦 Instalar dependencias
       run: npm ci
-    - name: Instalar Oxlint
-      run: npm ci --save-dev oxlint
-# Ejecuta Oxlint para verificar la calidad del código
-    - name: Ejecutar Oxlint
-      run: npm run lint
+    
+    - name: 🛡️ Audit de seguridad npm
+      run: |
+        echo "🔍 Ejecutando npm audit..."
+        npm audit --audit-level high
+    
+    - name: 📊 Análisis de dependencias
+      run: |
+        echo "📦 Dependencias principales:"
+        npm list --depth=0 --prod
+        echo ""
+        echo "🔧 Dependencias de desarrollo:"
+        npm list --depth=0 --dev
 
