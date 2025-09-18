@@ -1,0 +1,7 @@
+# Bandit security configuration
+[bandit]
+exclude_dirs = ["*/tests/*", "*/test_*", "*/migrations/*", "*/venv/*", "*/env/*"]
+skips = ["B101", "B601"]  # Skip assert_used_in_tests and shell_injection_subprocess
+
+# B101: Test for use of assert - not relevant in tests
+# B601: paramiko_calls - if you're using paramiko, review this

@@ -100,8 +100,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'dataproptool',
-        'USER': 'cesar',
-        'PASSWORD': 'a1234.',
+        'USER': 'ferrazzano',
+        'PASSWORD': 'chelo123',
         'HOST': 'localhost',  # Or your PostgreSQL server address
         'PORT': '5432'
     }
