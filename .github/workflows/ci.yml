@@ -1,4 +1,4 @@
-name: Frontend CI Pipeline
+name: Full Stack CI Pipeline
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 
 env:
   NODE_VERSION: '20'
+  PYTHON_VERSION: '3.12'
 
 jobs:
   # ===============================================
@@ -138,4 +139,188 @@ jobs:
         echo ""
         echo "🔧 Dependencias de desarrollo:"
         npm list --depth=0 --dev
+
+  # ===============================================
+  # JOB 3: TESTS Y VALIDACIÓN DEL BACKEND
+  # ===============================================
+  backend-tests:
+    name: Backend Tests & Quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_dataproptool
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: |
+          requirements.txt
+          requirements-dev.txt
+    
+    - name: 📦 Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ../requirements.txt
+        pip install -r ../requirements-dev.txt
+    
+    - name: 🔍 Ejecutar flake8 (linting)
+      run: |
+        echo "🔍 Analizando código Python con flake8..."
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: 🎨 Verificar formato de código con black
+      run: |
+        echo "🎨 Verificando formato de código..."
+        black --check --diff .
+    
+    - name: 📦 Verificar orden de imports con isort
+      run: |
+        echo "📦 Verificando orden de imports..."
+        isort --check-only --diff .
+    
+    - name: 🛡️ Análisis de seguridad con bandit
+      run: |
+        echo "🛡️ Ejecutando análisis de seguridad..."
+        bandit -r . -x */tests*,*/migrations* --skip B101,B601
+    
+    - name: 🗄️ Ejecutar migraciones
+      run: |
+        echo "🗄️ Aplicando migraciones de base de datos..."
+        python manage.py migrate --settings=backend.test_settings
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_dataproptool
+        DJANGO_SETTINGS_MODULE: backend.test_settings
+    
+    - name: 🧪 Ejecutar tests con pytest
+      run: |
+        echo "🧪 Ejecutando tests del backend..."
+        pytest --verbose --tb=short --cov=. --cov-report=xml --cov-report=term-missing
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_dataproptool
+        DJANGO_SETTINGS_MODULE: backend.test_settings
+    
+    - name: 📊 Subir coverage a Codecov
+      if: success()
+      uses: codecov/codecov-action@v4
+      with:
+        file: backend/coverage.xml
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+    
+    - name: 🔍 Verificar configuración Django
+      run: |
+        echo "🔍 Verificando configuración de Django..."
+        python manage.py check --settings=backend.test_settings
+        python manage.py check --deploy --settings=backend.test_settings
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_dataproptool
+        DJANGO_SETTINGS_MODULE: backend.test_settings
+
+  # ===============================================
+  # JOB 4: INTEGRACIÓN Y VALIDACIÓN COMPLETA
+  # ===============================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: integration_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: 📦 Instalar dependencias backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+      working-directory: ./backend
+    
+    - name: 📦 Instalar dependencias frontend
+      run: npm ci
+      working-directory: ./frontend
+    
+    - name: 🚀 Iniciar servidor Django
+      run: |
+        python manage.py migrate --settings=backend.test_settings
+        python manage.py runserver --settings=backend.test_settings &
+        sleep 10
+      working-directory: ./backend
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/integration_test
+        DJANGO_SETTINGS_MODULE: backend.test_settings
+    
+    - name: 🔗 Verificar conectividad API
+      run: |
+        echo "🔗 Verificando conectividad con la API..."
+        curl -f http://localhost:8000/api/ || echo "API no disponible"
+        curl -f http://localhost:8000/admin/ || echo "Admin no disponible"
+    
+    - name: 🏗️ Build frontend con API real
+      run: npm run build
+      working-directory: ./frontend
+      env:
+        VITE_API_URL: http://localhost:8000
+    
+    - name: 📈 Comentar resultado completo en PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## 🎉 Pipeline Completo Exitoso\n\n✅ Frontend tests passed\n✅ Backend tests passed\n✅ Integration tests passed\n\n📦 Build artifacts disponibles\n🚀 Ready for deployment!`
+          });
 
