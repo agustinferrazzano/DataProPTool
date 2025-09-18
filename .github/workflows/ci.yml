@@ -67,9 +67,14 @@ jobs:
       run: |
         echo "📦 Bundle size analysis:"
         if [ -d "dist" ]; then
-          du -sh dist/*
+          echo "Individual files:"
+          du -sh dist/* | sort -hr
+          echo ""
           echo "Total bundle size:"
           du -sh dist
+          echo ""
+          echo "📊 Detailed analysis:"
+          find dist -name "*.js" -o -name "*.css" | xargs ls -lh
         fi
     
     - name: 📤 Subir artifacts del build
