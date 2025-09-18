@@ -32,7 +32,7 @@ jobs:
       with: 
         node-version: 20
     - name: Instalar dependencias
-      run: install
+      run: npm ci
     - name: Instalar Oxlint
       run: npm ci --save-dev oxlint
 # Ejecuta Oxlint para verificar la calidad del código
