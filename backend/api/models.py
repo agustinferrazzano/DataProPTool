@@ -100,6 +100,15 @@ class DataQuality(models.Model):
     def __str__(self):
         return self.titulo
 
+class Person(models.Model):
+    nombre = models.CharField(max_length=255)
+    apellido = models.CharField(max_length=255)
+    organizacion = models.ForeignKey(OrgProfile, on_delete=models.CASCADE, related_name='personas')
+    rol= models.ForeignKey(Stakeholder, on_delete=models.CASCADE, related_name='personas')
+
+    def __str__(self):
+        return f"{self.nombre} {self.apellido}"
+
 class AnalisisDataProblem(models.Model):
     data_problem = models.OneToOneField(
         DataProblem, on_delete=models.CASCADE, related_name="analisis"

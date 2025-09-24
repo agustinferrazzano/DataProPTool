@@ -15,7 +15,8 @@ from .views import (
     HerramientadeAnalisisViewSet,
     DataStageViewSet,
     DataQualityViewSet,
-    AnalisisDataProblemViewSet
+    AnalisisDataProblemViewSet,
+    PersonViewSet,
 )
 
 
@@ -35,6 +36,7 @@ router.register(r'herramientas', HerramientadeAnalisisViewSet, basename='herrami
 router.register(r"datastages", DataStageViewSet)
 router.register(r"dataquality", DataQualityViewSet)
 router.register(r"analisisdataproblem", AnalisisDataProblemViewSet, basename="analisisdataproblem")
+router.register(r"personas", PersonViewSet, basename="personas")
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -8,7 +8,7 @@ from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
 from rest_framework.viewsets import ViewSet
-from .models import RepositorioSistema, AnalisisDataProblem, SistemaInformacion, HerramientadeAnalisis, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, DataStage, DataQuality
+from .models import RepositorioSistema, AnalisisDataProblem, SistemaInformacion, HerramientadeAnalisis, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, DataStage, DataQuality, Person
 from .serializers import (
     RepositorioSistemaSerializer,
     SistemaInformacionSerializer,
@@ -22,7 +22,8 @@ from .serializers import (
     HerramientadeAnalisisSerializer,
     DataStageSerializer,
     DataQualitySerializer,
-    AnalisisDataProblemSerializer
+    AnalisisDataProblemSerializer,
+    PersonSerializer,
 )
 
 
@@ -40,6 +41,13 @@ class DataProblemViewSet(viewsets.ModelViewSet):
                 "analisis__data_qualities"
             )
         return qs
+
+class PersonViewSet(viewsets.ModelViewSet):
+    serializer_class = PersonSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Person.objects.filter(organizacion=self.request.user.org_profile)
 
 class TecnicaIdentificacionViewSet(viewsets.ModelViewSet):
     serializer_class = TecnicaIdentificacionSerializer

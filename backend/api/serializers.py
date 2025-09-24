@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, HerramientadeAnalisis, DataStage, DataQuality, AnalisisDataProblem
+from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, HerramientadeAnalisis, DataStage, DataQuality, AnalisisDataProblem, Person
 
 # Serializer base para las fuentes
 class FuenteBaseSerializer(serializers.ModelSerializer):
@@ -141,6 +141,23 @@ class DepartamentoSerializer(FuenteBaseSerializer):
     def create(self, validated_data):
         return super().create(validated_data)
 
+class PersonSerializer(serializers.ModelSerializer):
+    organizacion = serializers.PrimaryKeyRelatedField(
+        queryset=OrgProfile.objects.all()
+    )
+    rol = StakeholderSimpleSerializer(read_only=True)
+    rol_id = serializers.PrimaryKeyRelatedField(
+        queryset=Stakeholder.objects.all(),
+        write_only=True,
+        source='rol'
+    )
+
+    class Meta:
+        model = Person
+        fields = ['id', 'nombre', 'apellido', 'organizacion', 'rol', 'rol_id']
+
+    def create(self, validated_data):
+        return super().create(validated_data)
 
 class OrgProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -249,7 +266,7 @@ class AnalisisDataProblemSerializer(serializers.ModelSerializer):
         def create(self, validated_data):
             return super().create(validated_data)
         
-    
+
 
 class AnalisisDataProblemNestedSerializer(serializers.ModelSerializer):
     data_stages = DataStageSerializer(many=True, read_only=True)
