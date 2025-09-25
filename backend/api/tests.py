@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
+from .models import OrgProfile, TecnicaIdentificacion, DataProblem, Fuente, Stakeholder, Grupo
 
 # Tests básicos para el API
 
@@ -78,3 +79,52 @@ class DatabaseTestCase:
         
         with pytest.raises(User.DoesNotExist):
             User.objects.get(id=user_id)
+
+
+class ModelsTestCase(TestCase):
+    """Tests para los modelos específicos del proyecto"""
+    
+    def test_org_profile_creation(self):
+        """Test creación de perfil de organización"""
+        user = User.objects.create_user(username='org_admin')
+        org = OrgProfile.objects.create(
+            user=user,
+            nombre='Test Organization',
+            descripcion='Una organización de prueba'
+        )
+        
+        self.assertEqual(org.nombre, 'Test Organization')
+        self.assertEqual(org.user, user)
+        self.assertEqual(str(org), 'Test Organization')
+    
+    def test_tecnica_identificacion_creation(self):
+        """Test creación de técnica de identificación"""
+        user = User.objects.create_user(username='tech_owner')
+        tecnica = TecnicaIdentificacion.objects.create(
+            titulo='Análisis de Logs',
+            descripcion='Técnica para analizar logs del sistema',
+            es_publica=True,
+            propietario=user
+        )
+        
+        self.assertEqual(tecnica.titulo, 'Análisis de Logs')
+        self.assertTrue(tecnica.es_publica)
+        self.assertEqual(tecnica.propietario, user)
+        self.assertEqual(str(tecnica), 'Análisis de Logs')
+    
+    def test_models_string_representation(self):
+        """Test representaciones string de modelos básicos"""
+        user = User.objects.create_user(username='test_user')
+        org = OrgProfile.objects.create(
+            user=user,
+            nombre='Mi Organización',
+            descripcion='Descripción de prueba'
+        )
+        
+        grupo = Grupo.objects.create(
+            nombre='Equipo de Calidad',
+            organizacion=org
+        )
+        
+        self.assertEqual(str(org), 'Mi Organización')
+        self.assertEqual(str(grupo), 'Equipo de Calidad')

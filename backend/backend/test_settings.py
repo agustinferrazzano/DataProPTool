@@ -1,5 +1,6 @@
 """
 Django test settings for CI environment
+Enhanced with comprehensive testing configuration
 """
 import os
 from .settings import *
