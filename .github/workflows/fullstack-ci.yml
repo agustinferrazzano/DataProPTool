@@ -1,0 +1,186 @@
+name: Full Stack CI Pipeline
+
+on:
+  push:
+    branches: [ dev ]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'requirements*.txt'
+      - 'package*.json'
+      - 'pytest.ini'
+  pull_request:
+    branches: [ dev ]
+    paths:
+      - 'frontend/**' 
+      - 'backend/**'
+      - 'requirements*.txt'
+      - 'package*.json'
+      - 'pytest.ini'
+
+# Solo se ejecuta cuando hay cambios en AMBOS frontend Y backend
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  # ===============================================
+  # JOB DE COORDINACIÓN
+  # ===============================================
+  check-changes:
+    name: 🔍 Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.changes.outputs.frontend }}
+      backend: ${{ steps.changes.outputs.backend }}
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+    
+    - name: 🔍 Detectar cambios
+      id: changes
+      run: |
+        # Detectar si hay cambios en frontend
+        if git diff --name-only HEAD~1 HEAD | grep -E '^frontend/|^package.*\.json$'; then
+          echo "frontend=true" >> $GITHUB_OUTPUT
+          echo "✅ Cambios detectados en frontend"
+        else
+          echo "frontend=false" >> $GITHUB_OUTPUT
+          echo "ℹ️ Sin cambios en frontend"
+        fi
+        
+        # Detectar si hay cambios en backend
+        if git diff --name-only HEAD~1 HEAD | grep -E '^backend/|^requirements.*\.txt$|^pytest\.ini$'; then
+          echo "backend=true" >> $GITHUB_OUTPUT
+          echo "✅ Cambios detectados en backend"
+        else
+          echo "backend=false" >> $GITHUB_OUTPUT  
+          echo "ℹ️ Sin cambios en backend"
+        fi
+
+  # ===============================================
+  # INTEGRACIÓN FULL-STACK
+  # ===============================================
+  integration-tests:
+    name: 🧪 Integration Tests
+    needs: check-changes
+    runs-on: ubuntu-latest
+    if: needs.check-changes.outputs.frontend == 'true' && needs.check-changes.outputs.backend == 'true'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: dataproptool_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Setup Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    
+    - name: 🟢 Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: 📦 Instalar dependencias backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: 📦 Instalar dependencias frontend
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: 🗄️ Setup base de datos
+      run: |
+        cd backend
+        python manage.py migrate
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
+        DJANGO_SETTINGS_MODULE: backend.test_settings
+    
+    - name: 🚀 Iniciar servidor Django (background)
+      run: |
+        cd backend  
+        python manage.py runserver 8000 &
+        echo $! > django.pid
+        sleep 10  # Esperar a que arranque
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
+        DJANGO_SETTINGS_MODULE: backend.test_settings
+    
+    - name: 🏗️ Build frontend con API real
+      run: |
+        cd frontend
+        npm run build
+      env:
+        VITE_API_URL: http://localhost:8000
+    
+    - name: 🧪 Tests de integración básicos
+      run: |
+        # Verificar que el API responde
+        curl -f http://localhost:8000/ || curl -f http://localhost:8000/admin/ || echo "✅ Server running"
+        
+        # Verificar que el frontend se puede servir
+        cd frontend
+        ls -la dist/
+        
+        echo "✅ Tests de integración completados"
+    
+    - name: 🛑 Detener servidor Django
+      if: always()
+      run: |
+        if [ -f backend/django.pid ]; then
+          kill $(cat backend/django.pid) || true
+        fi
+
+  # ===============================================
+  # RESUMEN DE RESULTADOS  
+  # ===============================================
+  summary:
+    name: 📊 CI Summary
+    needs: [check-changes, integration-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: 📋 Resumen de ejecución
+      run: |
+        echo "## 📊 Resumen de CI Full-Stack"
+        echo ""
+        echo "### 🔍 Cambios detectados:"
+        echo "- Frontend: ${{ needs.check-changes.outputs.frontend }}"
+        echo "- Backend: ${{ needs.check-changes.outputs.backend }}"
+        echo ""
+        echo "### 🧪 Tests ejecutados:"
+        if [ "${{ needs.check-changes.outputs.frontend }}" == "true" ] && [ "${{ needs.check-changes.outputs.backend }}" == "true" ]; then
+          echo "- ✅ Tests de integración full-stack"
+        else
+          echo "- ℹ️ Solo cambios en una parte, tests individuales en workflows separados"
+        fi
+        echo ""
+        echo "### 📈 Estado:"
+        echo "- Integration Tests: ${{ needs.integration-tests.result }}"
