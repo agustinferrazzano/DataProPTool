@@ -1,18 +1,12 @@
 name: Frontend CI Pipeline
 
+# ⚡ SIEMPRE EJECUTA: Este pipeline se ejecuta en TODOS los push/PR a dev
+# sin importar qué archivos cambien, garantizando validación completa
 on:
   push:
     branches: [ dev ]
-    paths:
-      - 'frontend/**'
-      - 'package*.json'
-      - '.github/workflows/frontend-ci.yml'
   pull_request:
     branches: [ dev ]
-    paths:
-      - 'frontend/**'
-      - 'package*.json'
-      - '.github/workflows/frontend-ci.yml'
 
 # Permisos globales para todo el workflow
 permissions:

@@ -1,24 +1,12 @@
 name: Full Stack CI Pipeline
 
+# ⚡ SIEMPRE EJECUTA: Este pipeline se ejecuta en TODOS los push/PR a dev
+# sin importar qué archivos cambien, realizando tests de integración completos
 on:
   push:
     branches: [ dev ]
-    paths:
-      - 'frontend/**'
-      - 'backend/**'
-      - 'requirements*.txt'
-      - 'package*.json'
-      - 'pytest.ini'
   pull_request:
     branches: [ dev ]
-    paths:
-      - 'frontend/**' 
-      - 'backend/**'
-      - 'requirements*.txt'
-      - 'package*.json'
-      - 'pytest.ini'
-
-# Solo se ejecuta cuando hay cambios en AMBOS frontend Y backend
 permissions:
   contents: read
   pull-requests: write
@@ -26,50 +14,11 @@ permissions:
 
 jobs:
   # ===============================================
-  # JOB DE COORDINACIÓN
-  # ===============================================
-  check-changes:
-    name: 🔍 Detect Changes
-    runs-on: ubuntu-latest
-    outputs:
-      frontend: ${{ steps.changes.outputs.frontend }}
-      backend: ${{ steps.changes.outputs.backend }}
-    
-    steps:
-    - name: 📥 Checkout código
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
-    
-    - name: 🔍 Detectar cambios
-      id: changes
-      run: |
-        # Detectar si hay cambios en frontend
-        if git diff --name-only HEAD~1 HEAD | grep -E '^frontend/|^package.*\.json$'; then
-          echo "frontend=true" >> $GITHUB_OUTPUT
-          echo "✅ Cambios detectados en frontend"
-        else
-          echo "frontend=false" >> $GITHUB_OUTPUT
-          echo "ℹ️ Sin cambios en frontend"
-        fi
-        
-        # Detectar si hay cambios en backend
-        if git diff --name-only HEAD~1 HEAD | grep -E '^backend/|^requirements.*\.txt$|^pytest\.ini$'; then
-          echo "backend=true" >> $GITHUB_OUTPUT
-          echo "✅ Cambios detectados en backend"
-        else
-          echo "backend=false" >> $GITHUB_OUTPUT  
-          echo "ℹ️ Sin cambios en backend"
-        fi
-
-  # ===============================================
   # INTEGRACIÓN FULL-STACK
   # ===============================================
   integration-tests:
     name: 🧪 Integration Tests
-    needs: check-changes
     runs-on: ubuntu-latest
-    if: needs.check-changes.outputs.frontend == 'true' && needs.check-changes.outputs.backend == 'true'
     
     services:
       postgres:
@@ -162,7 +111,7 @@ jobs:
   # ===============================================
   summary:
     name: 📊 CI Summary
-    needs: [check-changes, integration-tests]
+    needs: [integration-tests]
     runs-on: ubuntu-latest
     if: always()
     
@@ -171,16 +120,14 @@ jobs:
       run: |
         echo "## 📊 Resumen de CI Full-Stack"
         echo ""
-        echo "### 🔍 Cambios detectados:"
-        echo "- Frontend: ${{ needs.check-changes.outputs.frontend }}"
-        echo "- Backend: ${{ needs.check-changes.outputs.backend }}"
-        echo ""
         echo "### 🧪 Tests ejecutados:"
-        if [ "${{ needs.check-changes.outputs.frontend }}" == "true" ] && [ "${{ needs.check-changes.outputs.backend }}" == "true" ]; then
-          echo "- ✅ Tests de integración full-stack"
-        else
-          echo "- ℹ️ Solo cambios en una parte, tests individuales en workflows separados"
-        fi
+        echo "- ✅ Tests de integración full-stack completos"
+        echo "- ✅ Validación frontend + backend + base de datos"
         echo ""
         echo "### 📈 Estado:"
         echo "- Integration Tests: ${{ needs.integration-tests.result }}"
+        echo ""
+        echo "### 🚀 Componentes validados:"
+        echo "- Frontend: React + Vite build"
+        echo "- Backend: Django + PostgreSQL"
+        echo "- Integración: API + Frontend communication"

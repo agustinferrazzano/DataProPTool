@@ -1,18 +1,12 @@
 name: Backend CI Pipeline
 
+# ⚡ SIEMPRE EJECUTA: Este pipeline se ejecuta en TODOS los push/PR a dev
+# sin importar qué archivos cambien, garantizando validación completa
 on:
   push:
     branches: [ dev ]
-    paths:
-      - 'backend/**'
-      - 'requirements*.txt'
-      - 'pytest.ini'
   pull_request:
     branches: [ dev ]
-    paths:
-      - 'backend/**'
-      - 'requirements*.txt'
-      - 'pytest.ini'
 
 # Permisos necesarios
 permissions:
