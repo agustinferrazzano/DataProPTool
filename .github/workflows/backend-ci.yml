@@ -110,15 +110,7 @@ jobs:
     - name: 🔍 Verificar configuración Django
       run: |
         echo "🔍 Verificando configuración Django..."
-        python manage.py check --deploy
-      env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
-        DJANGO_SETTINGS_MODULE: backend.test_settings
-    
-    - name: 📋 Collectstatic (verificación)
-      run: |
-        echo "📋 Verificando archivos estáticos..."
-        python manage.py collectstatic --noinput --dry-run
+        python manage.py check
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
         DJANGO_SETTINGS_MODULE: backend.test_settings

@@ -54,3 +54,7 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
+
+# Static files configuration for testing
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_test')
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
