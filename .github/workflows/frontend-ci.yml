@@ -209,16 +209,25 @@ jobs:
     - name: 📢 Mostrar URL de staging
       run: |
         echo "🚀 ¡Deploy exitoso!"
-        echo "📍 URL de staging: ${{ steps.deployment.outputs.page_url }}"
-        echo "🔗 Accede a la aplicación en: ${{ steps.deployment.outputs.page_url }}"
+        echo ""
+        echo "🌐 URLs de la aplicación:"
+        echo "📱 Frontend: ${{ steps.deployment.outputs.page_url }}"
+        echo "� Backend API: https://dataproptool-backend.onrender.com"
+        echo "❤️ Health Check: https://dataproptool-backend.onrender.com/api/health/"
         echo ""
         echo "📊 Resumen del deploy:"
         echo "  - Branch: dev"
         echo "  - Commit: ${{ github.sha }}"
+        echo "  - Frontend: GitHub Pages (estático)"
+        echo "  - Backend: Render.com (API + PostgreSQL)"
+        echo ""
+        echo "🔗 Enlaces:"
+        echo "  - App: ${{ steps.deployment.outputs.page_url }}"
         echo "  - Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         
-        # También crear un archivo con la URL para referencia
-        echo "${{ steps.deployment.outputs.page_url }}" > staging-url.txt
+        # También crear un archivo con las URLs para referencia
+        echo "Frontend: ${{ steps.deployment.outputs.page_url }}" > staging-url.txt
+        echo "Backend: https://dataproptool-backend.onrender.com" >> staging-url.txt
     
     - name: 📤 Subir URL de staging como artifact
       uses: actions/upload-artifact@v4

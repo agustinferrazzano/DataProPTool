@@ -15,7 +15,8 @@ from .views import (
     HerramientadeAnalisisViewSet,
     DataStageViewSet,
     DataQualityViewSet,
-    AnalisisDataProblemViewSet
+    AnalisisDataProblemViewSet,
+    health_check
 )
 
 
@@ -38,4 +39,5 @@ router.register(r"analisisdataproblem", AnalisisDataProblemViewSet, basename="an
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('health/', health_check, name='health_check'),
 ]
