@@ -139,3 +139,86 @@ jobs:
         echo "🔧 Dependencias de desarrollo:"
         npm list --depth=0 --dev
 
+  # ===============================================
+  # JOB 3: DEPLOY A GITHUB PAGES (STAGING)
+  # ===============================================
+  deploy-staging:
+    name: 🚀 Deploy to GitHub Pages
+    needs: [frontend-tests, frontend-security]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    
+    # Permisos necesarios para GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    # Entorno de staging
+    environment:
+      name: staging
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with: 
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: 📦 Instalar dependencias
+      run: npm ci
+    
+    - name: 🏗️ Build para producción
+      run: npm run build
+      env:
+        # Variables de entorno para staging
+        VITE_API_URL: https://dataproptool-api-staging.onrender.com
+        VITE_APP_ENV: staging
+    
+    - name: 📋 Configurar GitHub Pages
+      uses: actions/configure-pages@v4
+    
+    - name: 📤 Subir artefactos a Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: ./frontend/dist
+    
+    - name: 🚀 Deploy a GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+    
+    - name: 📢 Comentar URL de staging
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const deployUrl = '${{ steps.deployment.outputs.page_url }}';
+          
+          // Si es un push directo a dev, crear un issue comment
+          if (context.eventName === 'push') {
+            // Buscar el último commit para comentar
+            const { data: commits } = await github.rest.repos.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              per_page: 1
+            });
+            
+            if (commits.length > 0) {
+              await github.rest.repos.createCommitComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                body: `## 🚀 Staging Deployment Successful!\n\n✅ **Aplicación desplegada en staging**\n\n🔗 **URL de staging**: ${deployUrl}\n\n📊 **Detalles del deploy:**\n- Branch: \`${context.ref.replace('refs/heads/', '')}\`\n- Commit: \`${context.sha.substring(0, 7)}\`\n- Workflow: [Ver detalles](${context.payload.repository.html_url}/actions/runs/${context.runId})`
+              });
+            }
+          }
+
