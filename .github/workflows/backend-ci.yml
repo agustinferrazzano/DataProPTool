@@ -73,18 +73,20 @@ jobs:
         python -m py_compile $(find . -name "*.py" -not -path "*/migrations/*" | head -10)
       continue-on-error: true
     
-    - name: ⚙️ Verificar migraciones Django
+    - name: 🗄️ Aplicar migraciones Django
       run: |
-        echo "⚙️ Verificando migraciones..."
-        python manage.py makemigrations --check --dry-run
+        echo "🗄️ Aplicando migraciones Django..."
+        # Aplicar migraciones básicas de Django + las del proyecto
+        python manage.py migrate --run-syncdb
+        echo "✅ Migraciones completadas"
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
         DJANGO_SETTINGS_MODULE: backend.test_settings
     
-    - name: 🗄️ Aplicar migraciones
+    - name: ⚙️ Verificar migraciones
       run: |
-        echo "🗄️ Aplicando migraciones..."
-        python manage.py migrate
+        echo "⚙️ Verificando migraciones..."
+        python manage.py showmigrations --plan
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
         DJANGO_SETTINGS_MODULE: backend.test_settings
