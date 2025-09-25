@@ -39,7 +39,7 @@ function RegisterAndLogout() {
 function App() {
   return (
     <>   
-      <BrowserRouter>
+      <BrowserRouter basename="/DataProPTool">
       <Routes>
         <Route path="/" element={<ProtectedRoute> <HomeUser /></ProtectedRoute>}/>
         <Route path="/Home" element={<Home />} />
