@@ -191,7 +191,7 @@ jobs:
       run: npm run build
       env:
         # Variables de entorno para staging
-        VITE_API_URL: https://dataproptool-api-staging.onrender.com
+        VITE_API_URL: https://dataproptool-backend.onrender.com
         VITE_APP_ENV: staging
     
     - name: 📋 Configurar GitHub Pages
