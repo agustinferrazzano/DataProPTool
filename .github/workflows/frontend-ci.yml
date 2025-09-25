@@ -220,10 +220,10 @@ jobs:
         # También crear un archivo con la URL para referencia
         echo "${{ steps.deployment.outputs.page_url }}" > staging-url.txt
     
-    - name: � Subir URL de staging como artifact
+    - name: 📤 Subir URL de staging como artifact
       uses: actions/upload-artifact@v4
       with:
         name: staging-url-${{ github.sha }}
-        path: staging-url.txt
+        path: ./frontend/staging-url.txt
         retention-days: 30
 
