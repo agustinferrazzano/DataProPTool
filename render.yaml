@@ -3,27 +3,11 @@ services:
     name: dataproptool-backend
     runtime: python3
     buildCommand: |
-      cd backend &&
-      pip install -r ../requirements.txt &&
-      python manage.py collectstatic --noinput &&
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
       python manage.py migrate
-    startCommand: cd backend && gunicorn backend.wsgi:application
+    startCommand: gunicorn wsgi:application
     plan: free
-    branch: dev
-    healthCheckPath: /admin/
     envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: backend.settings
-      - key: PYTHON_VERSION
-        value: 3.12.1
-      - key: DEBUG
-        value: False
-      - key: ALLOWED_HOSTS
-        value: dataproptool-backend.onrender.com,localhost,127.0.0.1
-        
-  - type: pserv
-    name: dataproptool-db
-    runtime: postgresql
-    plan: free
-    databaseName: dataproptool
-    databaseUser: dataproptool_user
+      - key: DJANGO_SETTINGS_MODULE  
+        value: backend.production_settings

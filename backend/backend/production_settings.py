@@ -2,7 +2,6 @@
 Django production settings for Render deployment
 """
 import os
-import dj_database_url
 from .settings import *
 
 # Override for production
@@ -21,6 +20,7 @@ if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
 
 # Database configuration for Render PostgreSQL
 if 'DATABASE_URL' in os.environ:
+    import dj_database_url
     DATABASES = {
         'default': dj_database_url.parse(os.environ['DATABASE_URL'])
     }
