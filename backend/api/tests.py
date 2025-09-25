@@ -22,6 +22,24 @@ class APIHealthTestCase(APITestCase):
         except Exception:
             # Si no existe la ruta /api/, probamos otras rutas comunes
             self.assertTrue(True, "API root test passed - no routes configured yet")
+    
+    def test_health_check_endpoint(self):
+        """Test del nuevo endpoint de health check"""
+        # Este test verifica que nuestra nueva vista funciona
+        from django.urls import reverse
+        from .views import health_check
+        
+        # Test directo de la función de vista
+        from rest_framework.test import APIRequestFactory
+        factory = APIRequestFactory()
+        request = factory.get('/health/')
+        
+        response = health_check(request)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], 'healthy')
+        self.assertEqual(response.data['message'], 'DataProPTool API is running')
+        self.assertIn('version', response.data)
 
 
 class ModelTestCase(TestCase):
@@ -128,3 +146,35 @@ class ModelsTestCase(TestCase):
         
         self.assertEqual(str(org), 'Mi Organización')
         self.assertEqual(str(grupo), 'Equipo de Calidad')
+    
+    def test_fuente_model_hierarchy(self):
+        """Test jerarquía de modelos de fuentes"""
+        user = User.objects.create_user(username='hierarchy_user')
+        org = OrgProfile.objects.create(
+            user=user,
+            nombre='Test Hierarchy Org',
+            descripcion='Para testing de jerarquía'
+        )
+        
+        # Test Fuente base
+        fuente = Fuente.objects.create(
+            nombre='Fuente Base',
+            tipo='Base Type',
+            organizacion=org
+        )
+        
+        # Test Stakeholder que extiende Fuente
+        stakeholder = Stakeholder.objects.create(
+            nombre='Test Stakeholder',
+            tipo='Persona',
+            organizacion=org,
+            descripcion_rol='Analista de datos senior'
+        )
+        
+        self.assertEqual(str(fuente), 'Fuente Base')
+        self.assertEqual(str(stakeholder), 'Test Stakeholder')
+        self.assertEqual(stakeholder.descripcion_rol, 'Analista de datos senior')
+        
+        # Verificar que ambos son fuentes
+        self.assertEqual(Fuente.objects.count(), 2)
+        self.assertEqual(Stakeholder.objects.count(), 1)

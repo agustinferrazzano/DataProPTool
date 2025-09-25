@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
+from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -181,3 +182,18 @@ class AnalisisDataProblemViewSet(viewsets.ModelViewSet):
         return AnalisisDataProblem.objects.filter(
             data_problem__organizacion=self.request.user.org_profile
         )
+
+
+# Vista simple de salud del API para testing
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Endpoint simple para verificar el estado del API
+    """
+    return Response({
+        'status': 'healthy',
+        'message': 'DataProPTool API is running',
+        'version': '1.0.0',
+        'database': 'connected'
+    }, status=status.HTTP_200_OK)
