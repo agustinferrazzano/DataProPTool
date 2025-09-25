@@ -66,7 +66,18 @@ jobs:
     - name: 🗄️ Setup base de datos
       run: |
         cd backend
-        python manage.py migrate
+        echo "🗄️ Aplicando migraciones Django..."
+        python manage.py migrate --run-syncdb
+        echo "✅ Migraciones completadas"
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
+        DJANGO_SETTINGS_MODULE: backend.test_settings
+    
+    - name: ⚙️ Verificar migraciones
+      run: |
+        cd backend
+        echo "⚙️ Verificando migraciones..."
+        python manage.py showmigrations --plan
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
         DJANGO_SETTINGS_MODULE: backend.test_settings
@@ -74,9 +85,21 @@ jobs:
     - name: 🚀 Iniciar servidor Django (background)
       run: |
         cd backend  
+        echo "🚀 Iniciando servidor Django..."
         python manage.py runserver 8000 &
         echo $! > django.pid
-        sleep 10  # Esperar a que arranque
+        echo "⏳ Esperando a que el servidor arranque..."
+        sleep 15
+        
+        # Verificar que el servidor está corriendo
+        for i in {1..30}; do
+          if curl -s http://localhost:8000/admin/ > /dev/null; then
+            echo "✅ Servidor Django corriendo correctamente"
+            break
+          fi
+          echo "⏳ Intento $i/30 - Esperando servidor..."
+          sleep 2
+        done
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/dataproptool_test
         DJANGO_SETTINGS_MODULE: backend.test_settings
@@ -84,14 +107,23 @@ jobs:
     - name: 🏗️ Build frontend con API real
       run: |
         cd frontend
+        echo "🏗️ Building frontend con API URL: http://localhost:8000"
         npm run build
       env:
         VITE_API_URL: http://localhost:8000
     
     - name: 🧪 Tests de integración básicos
       run: |
+        echo "🧪 Ejecutando tests de integración..."
+        
         # Verificar que el API responde
-        curl -f http://localhost:8000/ || curl -f http://localhost:8000/admin/ || echo "✅ Server running"
+        echo "📡 Verificando API health..."
+        if curl -f -s http://localhost:8000/health/; then
+          echo "✅ Health check endpoint funcionando"
+        else
+          echo "⚠️ Health check no disponible, probando admin..."
+          curl -f http://localhost:8000/admin/
+        fi
         
         # Verificar que el frontend se puede servir
         cd frontend
