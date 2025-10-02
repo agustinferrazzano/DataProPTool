@@ -134,16 +134,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install safety pip-audit
     
+    - name: ℹ️ Verificar versiones de herramientas
+      run: |
+        echo "📝 Versiones de herramientas de seguridad:"
+        safety --version || echo "❌ Safety no disponible"
+        pip-audit --version || echo "❌ pip-audit no disponible"
+        echo "🐍 Python version: $(python --version)"
+    
     - name: 🛡️ Audit de seguridad con safety
       run: |
         echo "🛡️ Ejecutando safety check..."
-        safety check -r requirements.txt
+        safety check --requirement requirements.txt --output text
       continue-on-error: true
     
     - name: 🔍 Audit con pip-audit
       run: |
         echo "🔍 Ejecutando pip-audit..."
-        pip-audit --requirement requirements.txt --format=text
+        pip-audit --requirement requirements.txt --desc
       continue-on-error: true
     
     - name: 📊 Análisis de dependencias
