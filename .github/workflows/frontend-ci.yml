@@ -1,6 +1,6 @@
 name: Frontend CI Pipeline
 
-# ⚡ SIEMPRE EJECUTA: Este pipeline se ejecuta en TODOS los push/PR a dev
+# SIEMPRE EJECUTA: Este pipeline se ejecuta en TODOS los push/PR a dev
 # sin importar qué archivos cambien, garantizando validación completa
 on:
   push:
@@ -25,15 +25,17 @@ jobs:
   # ===============================================
   frontend-tests:
     name: Frontend Tests & Quality
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest 
     defaults: 
       run:
         working-directory: ./frontend
     
     steps:
-    - name: 📥 Checkout código
+      # El checkout sirve para obtener el código del repositorio
+    - name: 📥 Checkout código 
       uses: actions/checkout@v4
-    
+
+      # Configurar Node.js
     - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with: 
@@ -44,9 +46,10 @@ jobs:
     - name: 📦 Instalar dependencias
       run: npm ci
     
+      # Oxlint es una herramienta de linting para proyectos React
     - name: 🔍 Ejecutar oxlint (calidad de código)
       run: npm run lint
-    
+    # Verificamos tipos de TypeScript para asegurar que no hay errores de tipado
     - name: 🔧 Verificar tipos TypeScript
       run: |
         # Si tienes TypeScript configurado
@@ -55,10 +58,10 @@ jobs:
         else
           echo "✅ No TypeScript config found, skipping type check"
         fi
-    
+    # Ejecutamos los tests unitarios para asegurar que todo funciona correctamente
     - name: 🧪 Ejecutar tests unitarios
       run: npm run test
-    
+    # Ejecutamos coverage para medir la cobertura de tests
     - name: 📊 Generar coverage report
       run: |
         if npm run test:coverage 2>/dev/null; then
@@ -66,13 +69,13 @@ jobs:
         else
           echo "ℹ️ No coverage script found, skipping"
         fi
-    
+    # Construimos el proyecto para producción
     - name: 🏗️ Build del proyecto
       run: npm run build
       env:
         # Variables de entorno para el build
         VITE_API_URL: http://localhost:8000
-    
+    # Verificamos el tamaño del bundle para controlar el peso de la app
     - name: 🔍 Verificar tamaño del bundle
       run: |
         echo "📦 Bundle size analysis:"
@@ -86,7 +89,7 @@ jobs:
           echo "📊 Detailed analysis:"
           find dist -name "*.js" -o -name "*.css" | xargs ls -lh
         fi
-    
+    # Subimos los artifacts del build para referencia futura
     - name: 📤 Subir artifacts del build
       uses: actions/upload-artifact@v4
       with:
@@ -135,7 +138,7 @@ jobs:
     
     - name: 📦 Instalar dependencias
       run: npm ci
-    
+    # npm audit sirve para detectar vulnerabilidades en las dependencias
     - name: 🛡️ Audit de seguridad npm
       run: |
         echo "🔍 Ejecutando npm audit..."
