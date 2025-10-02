@@ -17,6 +17,7 @@ from .views import (
     DataQualityViewSet,
     AnalisisDataProblemViewSet,
     PersonViewSet,
+    EvaluacionDataProblemViewSet,
 )
 
 
@@ -37,6 +38,8 @@ router.register(r"datastages", DataStageViewSet)
 router.register(r"dataquality", DataQualityViewSet)
 router.register(r"analisisdataproblem", AnalisisDataProblemViewSet, basename="analisisdataproblem")
 router.register(r"personas", PersonViewSet, basename="personas")
+router.register(r"evaluaciondataproblem", EvaluacionDataProblemViewSet, basename="evaluaciondataproblem")
+
 
 urlpatterns = [
     path('', include(router.urls)),

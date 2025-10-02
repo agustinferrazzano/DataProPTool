@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Avg
 
 class OrgProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="org_profile")
@@ -126,3 +127,20 @@ class AnalisisDataProblem(models.Model):
 
     def __str__(self):
         return f"Análisis de {self.data_problem.nombre}"
+    
+class EvaluacionDataProblem(models.Model):
+    data_problem = models.ForeignKey(
+        DataProblem, on_delete=models.CASCADE, related_name="evaluacion"
+    )
+    evaluador = models.ForeignKey(
+        Person, on_delete=models.SET_NULL, null=True, related_name="evaluaciones"
+    )
+    fecha_evaluacion = models.DateField(auto_now_add=True)
+    nota = models.IntegerField()
+
+    def __str__(self):
+        return f"Evaluación de {self.data_problem.nombre}"
+
+    @staticmethod
+    def promedio_notas(data_problem_id):
+        return EvaluacionDataProblem.objects.filter(data_problem_id=data_problem_id).aggregate(promedio=Avg('nota'))['promedio']

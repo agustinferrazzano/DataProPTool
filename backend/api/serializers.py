@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, HerramientadeAnalisis, DataStage, DataQuality, AnalisisDataProblem, Person
+from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, HerramientadeAnalisis, DataStage, DataQuality, AnalisisDataProblem, Person, EvaluacionDataProblem
 
 # Serializer base para las fuentes
 class FuenteBaseSerializer(serializers.ModelSerializer):
@@ -365,3 +365,19 @@ class DataProblemSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return super().create(validated_data)
+
+class EvaluacionDataProblemSerializer(serializers.ModelSerializer):
+    data_problem = serializers.PrimaryKeyRelatedField(queryset=DataProblem.objects.all())
+    evaluador = serializers.PrimaryKeyRelatedField(queryset=Person.objects.all())
+    promedio_notas = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = EvaluacionDataProblem
+        fields = ['id', 'data_problem', 'evaluador', 'fecha_evaluacion', 'nota', 'promedio_notas']
+
+    def create(self, validated_data):
+        return super().create(validated_data)
+
+    def get_promedio_notas(self, obj):
+        # Calcula el promedio de notas para el data_problem de esta evaluación
+        return EvaluacionDataProblem.promedio_notas(obj.data_problem.id)
