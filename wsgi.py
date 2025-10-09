@@ -5,12 +5,15 @@ WSGI config for DataProPTool project - Render deployment.
 import os
 import sys
 
-# Add backend directory to Python path
-backend_dir = os.path.join(os.path.dirname(__file__), 'backend')
+# Add current directory and backend to Python path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+backend_dir = os.path.join(current_dir, 'backend')
+sys.path.insert(0, current_dir)
 sys.path.insert(0, backend_dir)
 
 # Set Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.production_settings')
 
-# Import the actual WSGI application from backend
-from backend.wsgi import application
+# Import Django WSGI directly
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
