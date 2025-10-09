@@ -1,17 +1,28 @@
 """
-WSGI config for backend project.
+WSGI config for backend project - REDIRECTED TO ROOT
 
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
+This file now redirects to the root wsgi.py for Render deployment.
 """
 
 import os
+import sys
 
-from django.core.wsgi import get_wsgi_application
+print("🔄 BACKEND WSGI: Redirecting to root wsgi.py")
 
-# Use production settings for Render deployment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.production_settings')
+# Add root directory to path
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, root_dir)
 
-application = get_wsgi_application()
+print(f"🔍 Root directory: {root_dir}")
+
+try:
+    # Import from root wsgi.py
+    from wsgi import application
+    print("✅ BACKEND WSGI: Successfully imported application from root")
+except Exception as e:
+    print(f"❌ BACKEND WSGI: Error importing from root: {e}")
+    # Fallback to local configuration
+    print("🔄 BACKEND WSGI: Using fallback configuration")
+    from django.core.wsgi import get_wsgi_application
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.production_settings')
+    application = get_wsgi_application()

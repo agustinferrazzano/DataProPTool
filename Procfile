@@ -1,2 +1,2 @@
-web: gunicorn wsgi:application --host 0.0.0.0 --port $PORT
+web: echo "🚀 Starting with Procfile - Using wsgi:application" && gunicorn wsgi:application --host 0.0.0.0 --port $PORT --log-level debug
 release: python manage.py migrate && python manage.py collectstatic --noinput
