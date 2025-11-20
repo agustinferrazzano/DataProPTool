@@ -14,13 +14,17 @@ ALLOWED_HOSTS = [
     '127.0.0.1'
 ]
 
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
+
 # Add Render external hostname if available
 if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
     ALLOWED_HOSTS.append(os.environ['RENDER_EXTERNAL_HOSTNAME'])
 
 # Database configuration for Render PostgreSQL
-if 'DATABASE_URL' in os.environ:
-    import dj_database_url
+if 'DATABASE_URL' in os.environ and dj_database_url:
     DATABASES = {
         'default': dj_database_url.parse(os.environ['DATABASE_URL'])
     }
