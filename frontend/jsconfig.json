@@ -40,6 +40,5 @@
     "node_modules",
     "dist",
     "coverage"
-  ],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  ]
 }
