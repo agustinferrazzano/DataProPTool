@@ -1,0 +1,33 @@
+# Coverage.py configuration
+[run]
+source = .
+omit =
+    */migrations/*
+    */wsgi.py
+    */asgi.py
+    */wsgi_backup.py
+    manage.py
+    */test*.py
+    */tests.py
+    */__pycache__/*
+    */venv/*
+    */env/*
+    */requirements/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    def __str__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @property
+
+precision = 2
+show_missing = True
+
+[xml]
+output = coverage.xml
