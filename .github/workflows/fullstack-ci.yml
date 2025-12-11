@@ -4,9 +4,9 @@ name: Full Stack CI Pipeline
 # sin importar qué archivos cambien, realizando tests de integración completos
 on:
   push:
-    branches: [ dev ]
+    branches: [ dev , preproduccion]
   pull_request:
-    branches: [ dev ]
+    branches: [ dev , preproduccion]
 permissions:
   contents: read
   pull-requests: write
