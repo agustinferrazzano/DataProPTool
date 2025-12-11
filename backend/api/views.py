@@ -231,4 +231,19 @@ class ClasificacionResultViewSet(viewsets.ModelViewSet):
     # opcional: permitir upsert por id vía PUT/PATCH estándar
 
 
+# Vista simple de salud del API para testing
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Endpoint simple para verificar el estado del API
+    """
+    return Response({
+        'status': 'healthy',
+        'message': 'DataProPTool API is running',
+        'version': '1.0.0',
+        'database': 'connected'
+    }, status=status.HTTP_200_OK)
+
+
 

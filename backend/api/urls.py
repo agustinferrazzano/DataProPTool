@@ -19,6 +19,7 @@ from .views import (
     PersonViewSet,
     EvaluacionDataProblemViewSet,
     ClasificacionResultViewSet,
+    health_check,
 )
 
 
