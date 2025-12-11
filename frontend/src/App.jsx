@@ -24,7 +24,7 @@ import HerramientasDeAnalisis from './pages/HerramientasAnalisis';
 import ResultadosClasificacionDataProblems from './pages/ResuladosClasificacion';
 import ClassificacionDataProblems from './pages/ClasificacionDataProblems';
 import PriorizacionProcesos from './pages/PriorizacionProcesos';
-
+import PersonasPage from './pages/PersonasPage';
 
 function Logout() {
   localStorage.clear()
@@ -64,6 +64,7 @@ function App() {
         <Route path="/resultadosclasificacion" element={<ProtectedRoute><ResultadosClasificacionDataProblems /></ProtectedRoute>} />
         <Route path="/clasificaciondataproblems" element={<ProtectedRoute><ClassificacionDataProblems /></ProtectedRoute>} />
         <Route path="/priorizacionprocesos" element={<ProtectedRoute><PriorizacionProcesos /></ProtectedRoute>} />
+        <Route path="/persons" element={<ProtectedRoute><PersonasPage/></ProtectedRoute>} />
         <Route path="*" element={<NotFound />}></Route>
       </Routes>
     </BrowserRouter>

@@ -39,6 +39,9 @@ function DatosOrgPage() {
                         <NavBoton to="/stakeholders" variant="contained" color="primary" sx={{ minWidth: 320 }}>
                             Stakeholders
                         </NavBoton>
+                        <NavBoton to="/persons" variant="contained" color="primary" sx={{ minWidth: 320 }}>
+                            Personas
+                        </NavBoton>
                         <NavBoton to="/departamentos" variant="contained" color="primary" sx={{ minWidth: 320 }}>
                             Departamentos Organizacionales
                         </NavBoton>

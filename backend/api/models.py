@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Avg
 
 class OrgProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="org_profile")
@@ -100,6 +101,15 @@ class DataQuality(models.Model):
     def __str__(self):
         return self.titulo
 
+class Person(models.Model):
+    nombre = models.CharField(max_length=255)
+    apellido = models.CharField(max_length=255)
+    organizacion = models.ForeignKey(OrgProfile, on_delete=models.CASCADE, related_name='personas')
+    rol= models.ForeignKey(Stakeholder, on_delete=models.CASCADE, related_name='personas')
+
+    def __str__(self):
+        return f"{self.nombre} {self.apellido}"
+
 class AnalisisDataProblem(models.Model):
     data_problem = models.OneToOneField(
         DataProblem, on_delete=models.CASCADE, related_name="analisis"
@@ -117,3 +127,50 @@ class AnalisisDataProblem(models.Model):
 
     def __str__(self):
         return f"Análisis de {self.data_problem.nombre}"
+    
+class EvaluacionDataProblem(models.Model):
+    data_problem = models.ForeignKey(
+        DataProblem, on_delete=models.CASCADE, related_name="evaluacion"
+    )
+    evaluador = models.ForeignKey(
+        Person, on_delete=models.SET_NULL, null=True, related_name="evaluaciones"
+    )
+    fecha_evaluacion = models.DateField(auto_now_add=True)
+    nota = models.IntegerField()
+
+    def __str__(self):
+        return f"Evaluación de {self.data_problem.nombre}"
+
+    @staticmethod
+    def promedio_notas(data_problem_id):
+        return EvaluacionDataProblem.objects.filter(data_problem_id=data_problem_id).aggregate(promedio=Avg('nota'))['promedio']
+
+class ClasificacionResult(models.Model):
+    data_problems = models.ManyToManyField(
+        DataProblem,
+        related_name="clasificaciones",
+        blank=False
+    )
+    organizacion = models.ForeignKey(
+        OrgProfile,
+        on_delete=models.CASCADE,
+        related_name="clasificacion"
+    )
+    agg_func = models.CharField(max_length=50)
+    roles = models.ManyToManyField(
+        Stakeholder,
+        related_name="Clasificadores",
+        blank=True
+    )
+    matrix = models.JSONField(null=True, blank=True)
+    results = models.JSONField(null=True, blank=True)
+    promedios = models.JSONField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Clasificación"
+        verbose_name_plural = "Clasificaciones"
+
+    def __str__(self):
+        return f"Clasificación id {self.id} org {self.organizacion_id}"

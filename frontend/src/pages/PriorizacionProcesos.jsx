@@ -1,10 +1,25 @@
-import React, { useMemo, useState } from "react";
-import { Box, Button, Paper, Typography, Container, Table, TableBody, TableCell, TableHead, TableRow, Collapse, IconButton } from "@mui/material";
+import React, { useMemo, useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  Paper,
+  Typography,
+  Container,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Collapse,
+  IconButton,
+  CircularProgress,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import BotonVolverFijo from "../components/BotonVolverFijo";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import api from "../api";
 
 // Genera una matriz de 20x10 con valores aleatorios entre 0 y 1, pero siempre los mismos para cada usuario
 function generarMatrizAleatoriaDeterministica(filas = 20, columnas = 10, semilla = 12345) {
@@ -21,13 +36,54 @@ function generarMatrizAleatoriaDeterministica(filas = 20, columnas = 10, semilla
 function PriorizacionProcesos() {
   const navigate = useNavigate();
   const [openMatriz, setOpenMatriz] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [resultados, setResultados] = useState(Array(10).fill(0));
+  const [clasificacionId, setClasificacionId] = useState(null);
 
-  // Recupera los resultados de la matriz de clasificación
-  const clasificacion = JSON.parse(sessionStorage.getItem("clasificacionDataProblems") || "null");
-  // Si no hay clasificación, inicializa en 0
-  const resultados = clasificacion && Array.isArray(clasificacion.results)
-    ? clasificacion.results
-    : Array(10).fill(0);
+  // Obtiene los resultados de la clasificación desde la BD
+  useEffect(() => {
+    const loadClassificationFromDb = async () => {
+      setLoading(true);
+      try {
+        // obtener todas las clasificaciones
+        const resp = await api.get("/api/clasificacion/");
+        let items = Array.isArray(resp.data) ? resp.data : [];
+
+        if (items.length === 0) {
+          console.warn("No hay clasificaciones en la BD");
+          setResultados(Array(10).fill(0));
+          setLoading(false);
+          return;
+        }
+
+        // elegir la más reciente por updated_at / created_at
+        items.sort((a, b) => {
+          const ta = a.updated_at || a.created_at || "";
+          const tb = b.updated_at || b.created_at || "";
+          return ta < tb ? 1 : ta > tb ? -1 : 0;
+        });
+        const chosen = items[0];
+
+        // Normalizar y extraer resultados
+        const results = chosen.results || [];
+        setResultados(Array.isArray(results) ? results : Array(10).fill(0));
+        setClasificacionId(chosen.id);
+      } catch (err) {
+        console.error("Error cargando clasificación desde BD:", err);
+        // fallback a sessionStorage si falla
+        const clasificacion = JSON.parse(sessionStorage.getItem("clasificacionDataProblems") || "null");
+        if (clasificacion && Array.isArray(clasificacion.results)) {
+          setResultados(clasificacion.results);
+        } else {
+          setResultados(Array(10).fill(0));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadClassificationFromDb();
+  }, []);
 
   // Genera la matriz aleatoria determinística solo una vez
   const matriz = useMemo(() => generarMatrizAleatoriaDeterministica(20, 10, 12345), []);
@@ -40,6 +96,14 @@ function PriorizacionProcesos() {
 
   // Ordena las filas de mayor a menor puntaje para mostrar debajo
   const filasOrdenadas = [...filasConPuntaje].sort((a, b) => b.puntaje - a.puntaje);
+
+  if (loading) {
+    return (
+      <Box minHeight="100vh" bgcolor="#f7fafc" display="flex" alignItems="center" justifyContent="center">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box minHeight="100vh" bgcolor="#f7fafc">
@@ -66,6 +130,11 @@ function PriorizacionProcesos() {
                 <Typography variant="subtitle1" color="black" gutterBottom>
                   Si desea, haga click para ver la matriz de priorización
                 </Typography>
+                {clasificacionId && (
+                  <Typography variant="caption" color="textSecondary">
+                    Clasificación ID: {clasificacionId}
+                  </Typography>
+                )}
               </Box>
               <IconButton
                 size="large"
@@ -80,7 +149,7 @@ function PriorizacionProcesos() {
               </IconButton>
             </Box>
             <Collapse in={openMatriz}>
-              <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+              <Box sx={{ mt: 2, display: "flex", justifyContent: "center", overflowX: "auto" }}>
                 <Table size="small" sx={{ mb: 4, width: "auto" }}>
                   <TableHead>
                     <TableRow>
@@ -120,7 +189,7 @@ function PriorizacionProcesos() {
       </Container>
 
       {/* Contenedor para los resultados ordenados */}
-      <Container maxWidth="lg" sx={{ mb: 8, px: 0 }}> {/* Ahora ocupa el ancho máximo, sin padding extra */}
+      <Container maxWidth="lg" sx={{ mb: 8, px: 0 }}>
         <Paper elevation={2} sx={{ p: 4 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Filas ordenadas por puntaje (mayor a menor)

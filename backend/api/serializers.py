@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, HerramientadeAnalisis, DataStage, DataQuality, AnalisisDataProblem
+from .models import OrgProfile, Fuente, RepositorioSistema, SistemaInformacion, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, HerramientadeAnalisis, DataStage, DataQuality, AnalisisDataProblem, Person, EvaluacionDataProblem, ClasificacionResult
 
 # Serializer base para las fuentes
 class FuenteBaseSerializer(serializers.ModelSerializer):
@@ -141,6 +141,23 @@ class DepartamentoSerializer(FuenteBaseSerializer):
     def create(self, validated_data):
         return super().create(validated_data)
 
+class PersonSerializer(serializers.ModelSerializer):
+    organizacion = serializers.PrimaryKeyRelatedField(
+        queryset=OrgProfile.objects.all()
+    )
+    rol = StakeholderSimpleSerializer(read_only=True)
+    rol_id = serializers.PrimaryKeyRelatedField(
+        queryset=Stakeholder.objects.all(),
+        write_only=True,
+        source='rol'
+    )
+
+    class Meta:
+        model = Person
+        fields = ['id', 'nombre', 'apellido', 'organizacion', 'rol', 'rol_id']
+
+    def create(self, validated_data):
+        return super().create(validated_data)
 
 class OrgProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -249,7 +266,7 @@ class AnalisisDataProblemSerializer(serializers.ModelSerializer):
         def create(self, validated_data):
             return super().create(validated_data)
         
-    
+
 
 class AnalisisDataProblemNestedSerializer(serializers.ModelSerializer):
     data_stages = DataStageSerializer(many=True, read_only=True)
@@ -348,3 +365,60 @@ class DataProblemSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return super().create(validated_data)
+
+class EvaluacionDataProblemSerializer(serializers.ModelSerializer):
+    data_problem = serializers.PrimaryKeyRelatedField(queryset=DataProblem.objects.all())
+    evaluador = serializers.PrimaryKeyRelatedField(queryset=Person.objects.all())
+    promedio_notas = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = EvaluacionDataProblem
+        fields = ['id', 'data_problem', 'evaluador', 'fecha_evaluacion', 'nota', 'promedio_notas']
+
+    def create(self, validated_data):
+        # crear una única evaluación a partir de validated_data
+        return super().create(validated_data)
+
+    def get_promedio_notas(self, obj):
+        return EvaluacionDataProblem.promedio_notas(obj.data_problem.id)
+
+class ClasificacionResultSerializer(serializers.ModelSerializer):
+    roles = serializers.PrimaryKeyRelatedField(queryset=Stakeholder.objects.all(), many=True, required=False)
+    data_problems = serializers.PrimaryKeyRelatedField(queryset=DataProblem.objects.all(), many=True)
+
+    class Meta:
+        model = ClasificacionResult
+        fields = [
+            "id",
+            "data_problems",
+            "organizacion",
+            "agg_func",
+            "roles",
+            "matrix",
+            "results",
+            "promedios",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at", "organizacion"]
+
+    def create(self, validated_data):
+        roles = validated_data.pop("roles", [])
+        data_problems = validated_data.pop("data_problems", [])
+        # organizacion se establecerá en la view (request.user.org_profile) o aquí si está disponible
+        instance = super().create(validated_data)
+        if roles:
+            instance.roles.set(roles)
+        if data_problems:
+            instance.data_problems.set(data_problems)
+        return instance
+
+    def update(self, instance, validated_data):
+        roles = validated_data.pop("roles", None)
+        data_problems = validated_data.pop("data_problems", None)
+        instance = super().update(instance, validated_data)
+        if roles is not None:
+            instance.roles.set(roles)
+        if data_problems is not None:
+            instance.data_problems.set(data_problems)
+        return instance
