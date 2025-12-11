@@ -7,7 +7,11 @@ vi.mock('react-router-dom', () => ({
   BrowserRouter: ({ children }) => <div data-testid="router">{children}</div>,
   Routes: ({ children }) => <div data-testid="routes">{children}</div>,
   Route: ({ element }) => <div data-testid="route">{element}</div>,
-  Navigate: ({ to }) => <div data-testid="navigate">Redirecting to {to}</div>
+  Navigate: ({ to }) => <div data-testid="navigate">Redirecting to {to}</div>,
+  useNavigate: () => vi.fn(),
+  useParams: () => ({}),
+  useLocation: () => ({ pathname: '/' }),
+  Link: ({ children, to }) => <a href={to}>{children}</a>,
 }))
 
 // Mock global de Navigate para que esté disponible
