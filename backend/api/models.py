@@ -144,3 +144,33 @@ class EvaluacionDataProblem(models.Model):
     @staticmethod
     def promedio_notas(data_problem_id):
         return EvaluacionDataProblem.objects.filter(data_problem_id=data_problem_id).aggregate(promedio=Avg('nota'))['promedio']
+
+class ClasificacionResult(models.Model):
+    data_problems = models.ManyToManyField(
+        DataProblem,
+        related_name="clasificaciones",
+        blank=False
+    )
+    organizacion = models.ForeignKey(
+        OrgProfile,
+        on_delete=models.CASCADE,
+        related_name="clasificacion"
+    )
+    agg_func = models.CharField(max_length=50)
+    roles = models.ManyToManyField(
+        Stakeholder,
+        related_name="Clasificadores",
+        blank=True
+    )
+    matrix = models.JSONField(null=True, blank=True)
+    results = models.JSONField(null=True, blank=True)
+    promedios = models.JSONField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Clasificación"
+        verbose_name_plural = "Clasificaciones"
+
+    def __str__(self):
+        return f"Clasificación id {self.id} org {self.organizacion_id}"

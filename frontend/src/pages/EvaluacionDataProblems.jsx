@@ -38,86 +38,69 @@ const MOSCOW_VALUES = [
 ];
 // arreglar ademas la presentencion del promedio
 // Componente para una fila expandible de la tabla de evaluación
-function AccordionTableRowEvaluacion({ row, personas, promedio, onEvaluacionGuardada }) {
+function AccordionTableRowEvaluacion({ row, personas, dataProblemId, promedio, onEvaluacionGuardada }) {
   const [expanded, setExpanded] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [evaluador, setEvaluador] = useState("");
   const [valor, setValor] = useState("");
   const [evaluaciones, setEvaluaciones] = useState([]);
 
-  // arreglar esto
+  // Cargar evaluaciones usando el id del data problem (dataProblemId)
   useEffect(() => {
-    api.get(`/api/evaluaciondataproblem/?data_problem=${row.id}`)
+    if (!dataProblemId) return;
+    api.get(`/api/evaluaciondataproblem/?data_problem=${dataProblemId}`)
       .then((res) => {
-        setEvaluaciones(res.data);
-      });
-  }, [row.id, drawerOpen]);
+        setEvaluaciones(res.data || []);
+      })
+      .catch(() => setEvaluaciones([]));
+  }, [dataProblemId, drawerOpen]);
 
-  // arreglar esto
   const handleAgregarEvaluacion = (e) => {
     e.preventDefault();
     if (!evaluador || valor === "") return;
-    api.post("/api/evaluaciondataproblem/", {
-      data_problem: row.id,
-      evaluador: evaluador,
-      nota: valor,
-    }).then(() => {
-      setEvaluador("");
-      setValor("");
-      setDrawerOpen(false);
-      if (onEvaluacionGuardada) onEvaluacionGuardada();
-    });
+
+    // DEBUG: ver payload antes de enviar
+    const payload = {
+      data_problem: Number(dataProblemId), // asegurar tipo number
+      evaluador: Number(evaluador),
+      nota: Number(valor),
+    };
+    console.log("POST /api/evaluaciondataproblem/ payload:", payload);
+
+    api.post("/api/evaluaciondataproblem/", payload)
+      .then((resp) => {
+        console.log("Evaluación creada:", resp.data);
+        setEvaluador("");
+        setValor("");
+        setDrawerOpen(false);
+        if (onEvaluacionGuardada) onEvaluacionGuardada(dataProblemId);
+      })
+      .catch((err) => {
+        console.error("Error al crear evaluación:", err.response || err);
+      });
   };
 
   return (
     <>
-      <TableRow
-        hover
-        sx={{ cursor: "pointer" }}
-        onClick={() => setExpanded((prev) => !prev)}
-      >
+      <TableRow hover sx={{ cursor: "pointer" }} onClick={() => setExpanded((prev) => !prev)}>
         <TableCell width={40} align="center">
-          <ExpandMoreIcon
-            sx={{
-              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-              transition: "transform 0.2s",
-            }}
-          />
+          <ExpandMoreIcon sx={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
         </TableCell>
-        <TableCell sx={{ minWidth: 180, maxWidth: 260, fontWeight: 500 }}>
-          {row.nombre}
-        </TableCell>
+        <TableCell sx={{ minWidth: 180, maxWidth: 260, fontWeight: 500 }}>{row.nombre}</TableCell>
         <TableCell sx={{ minWidth: 220, maxWidth: 350 }}>
-          {row.descripcion.length > 60 && !expanded
-            ? row.descripcion.slice(0, 60) + "..."
-            : row.descripcion}
+          {row.descripcion.length > 60 && !expanded ? row.descripcion.slice(0, 60) + "..." : row.descripcion}
         </TableCell>
+        <TableCell sx={{ minWidth: 100, maxWidth: 140 }}>{row.fuente_identificacion_nombre}</TableCell>
+        <TableCell sx={{ minWidth: 180, maxWidth: 300 }}>{row.causa_raiz && row.causa_raiz.length > 60 && !expanded ? row.causa_raiz.slice(0, 60) + "..." : row.causa_raiz || "N/A"}</TableCell>
         <TableCell sx={{ minWidth: 100, maxWidth: 140 }}>
-          {row.fuente_identificacion_nombre}
-        </TableCell>
-        <TableCell sx={{ minWidth: 180, maxWidth: 300 }}>
-          {row.causa_raiz && row.causa_raiz.length > 60 && !expanded
-            ? row.causa_raiz.slice(0, 60) + "..."
-            : row.causa_raiz || "N/A"}
-        </TableCell>
-        <TableCell sx={{ minWidth: 100, maxWidth: 140 }}>
-          {row.data_stages?.length > 0
-            ? row.data_stages.map((ds) => (
-                <Chip key={ds.id} label={ds.titulo} size="small" sx={{ mr: 0.5 }} />
-              ))
-            : "N/A"}
+          {row.data_stages?.length > 0 ? row.data_stages.map((ds) => <Chip key={ds.id} label={ds.titulo} size="small" sx={{ mr: 0.5 }} />) : "N/A"}
         </TableCell>
         <TableCell sx={{ minWidth: 80, maxWidth: 120 }}>
-          {row.data_qualities?.length > 0
-            ? row.data_qualities.map((dq) => (
-                <Chip key={dq.id} label={dq.titulo} size="small" sx={{ mr: 0.5 }} />
-              ))
-            : "N/A"}
+          {row.data_qualities?.length > 0 ? row.data_qualities.map((dq) => <Chip key={dq.id} label={dq.titulo} size="small" sx={{ mr: 0.5 }} />) : "N/A"}
         </TableCell>
-        <TableCell align="center"> 
-          <b>{promedio}</b> 
-        </TableCell>
+        <TableCell align="center"><b>{promedio}</b></TableCell>
       </TableRow>
+
       {expanded && (
         <TableRow>
           <TableCell colSpan={8} sx={{ bgcolor: "#f5f5f5", px: 4 }}>
@@ -277,59 +260,48 @@ function EvaluacionDataProblems() {
           id: dp.id,
           nombre: dp.nombre,
           descripcion: dp.descripcion,
-          fuente_identificacion_nombre:
-            dp.fuente_identificacion?.nombre || "N/A",
-          fuente_confirmacion_nombre:
-            dp.fuente_confirmacion?.nombre || "N/A",
-          tecnicas_utilizadas_completo:
-            [
-              dp.tecnica_identificacion?.titulo
-                ? `Identificación: ${dp.tecnica_identificacion.titulo}`
-                : null,
-              dp.tecnica_confirmacion?.titulo
-                ? `Confirmación: ${dp.tecnica_confirmacion.titulo}`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" | ") || "N/A",
+          fuente_identificacion_nombre: dp.fuente_identificacion?.nombre || "N/A",
+          fuente_confirmacion_nombre: dp.fuente_confirmacion?.nombre || "N/A",
+          tecnicas_utilizadas_completo: [
+            dp.tecnica_identificacion?.titulo ? `Identificación: ${dp.tecnica_identificacion.titulo}` : null,
+            dp.tecnica_confirmacion?.titulo ? `Confirmación: ${dp.tecnica_confirmacion.titulo}` : null,
+          ].filter(Boolean).join(" | ") || "N/A",
           causa_raiz: dp.analisis?.causa_raiz || "",
           data_stages: dp.analisis?.data_stages || [],
           data_qualities: dp.analisis?.data_qualities || [],
         }));
         setRows(data);
 
-        // Solicita los promedios de todos los data problems
+        // Solicita promedios para cada data problem por su id
         Promise.all(
           data.map((row) =>
-            api
-              .get(`/api/evaluaciondataproblem/?data_problem=${row.id}`)
-              .then((res) => {
-                if (
-                  res.data.length > 0 &&
-                  res.data[0].promedio_notas !== undefined &&
-                  res.data[0].promedio_notas !== null
-                ) {
-                  return { id: row.id, promedio: Number(res.data[0].promedio_notas).toFixed(2) };
-                }
-                return { id: row.id, promedio: "-" };
-              })
+            api.get(`/api/evaluaciondataproblem/?data_problem=${row.id}`).then((res) => {
+              const avg = (res.data && res.data.length > 0 && res.data[0].promedio_notas !== undefined && res.data[0].promedio_notas !== null)
+                ? Number(res.data[0].promedio_notas).toFixed(2)
+                : "-";
+              return { id: row.id, promedio: avg };
+            }).catch(() => ({ id: row.id, promedio: "-" }))
           )
         ).then((result) => {
-          const promediosObj = {};
-          result.forEach(({ id, promedio }) => {
-            promediosObj[id] = promedio;
-          });
-          setPromedios(promediosObj);
+          const map = {};
+          result.forEach(({ id, promedio }) => { map[id] = promedio; });
+          setPromedios(map);
         });
       })
-      .catch(() => {
-        setRows([]);
-      });
+      .catch(() => setRows([]));
 
-    api.get("/api/personas/")
-      .then((response) => setPersonas(response.data))
-      .catch(() => setPersonas([]));
+    api.get("/api/personas/").then((response) => setPersonas(response.data)).catch(() => setPersonas([]));
   }, []);
+
+  const handleEvaluacionGuardada = (dataProblemId) => {
+    // refresca solo el promedio y evaluaciones del data problem afectado
+    api.get(`/api/evaluaciondataproblem/?data_problem=${dataProblemId}`).then((res) => {
+      const avg = (res.data && res.data.length > 0 && res.data[0].promedio_notas !== undefined && res.data[0].promedio_notas !== null)
+        ? Number(res.data[0].promedio_notas).toFixed(2)
+        : "-";
+      setPromedios((p) => ({ ...p, [dataProblemId]: avg }));
+    });
+  };
 
   return (
     <Box minHeight="100vh" bgcolor="#f7fafc">
@@ -385,15 +357,14 @@ function EvaluacionDataProblems() {
                       key={row.id}
                       row={row}
                       personas={personas}
+                      dataProblemId={row.id}           // <-- usa id del data problem
                       promedio={promedios[row.id] || "-"}
-                      onEvaluacionGuardada={() => {}}
+                      onEvaluacionGuardada={handleEvaluacionGuardada}
                     />
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={11} align="center">
-                      No hay Data Problems evaluados.
-                    </TableCell>
+                    <TableCell colSpan={11} align="center">No hay Data Problems evaluados.</TableCell>
                   </TableRow>
                 )}
               </TableBody>

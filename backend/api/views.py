@@ -3,12 +3,13 @@ from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
+from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
 from rest_framework.viewsets import ViewSet
-from .models import RepositorioSistema, AnalisisDataProblem, SistemaInformacion, HerramientadeAnalisis, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, DataStage, DataQuality, Person, EvaluacionDataProblem
+from .models import RepositorioSistema, AnalisisDataProblem, SistemaInformacion, HerramientadeAnalisis, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, DataStage, DataQuality, Person, EvaluacionDataProblem, ClasificacionResult
 from .serializers import (
     RepositorioSistemaSerializer,
     SistemaInformacionSerializer,
@@ -25,9 +26,9 @@ from .serializers import (
     AnalisisDataProblemSerializer,
     PersonSerializer,
     EvaluacionDataProblemSerializer,
+    ClasificacionResultSerializer,
 )
 from rest_framework.decorators import api_view, permission_classes
-
 
 class DataProblemViewSet(viewsets.ModelViewSet):
     serializer_class = DataProblemSerializer
@@ -193,12 +194,41 @@ class AnalisisDataProblemViewSet(viewsets.ModelViewSet):
         )
 
 class EvaluacionDataProblemViewSet(viewsets.ModelViewSet):
+    queryset = EvaluacionDataProblem.objects.all()
     serializer_class = EvaluacionDataProblemSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Filtra por organización del usuario autenticado
-        return EvaluacionDataProblem.objects.filter(
-            data_problem__organizacion=self.request.user.org_profile
-        )
+        # opcional: filtrar por organización del usuario si aplica
+        user_org = getattr(self.request.user, "org_profile", None)
+        if user_org:
+            return EvaluacionDataProblem.objects.filter(data_problem__organizacion=user_org)
+        return super().get_queryset()
+
+class ClasificacionResultViewSet(viewsets.ModelViewSet):
+    queryset = ClasificacionResult.objects.all()
+    serializer_class = ClasificacionResultSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user_org = getattr(self.request.user, "org_profile", None)
+        if user_org:
+            qs = qs.filter(organizacion=user_org)
+        data_problem_id = self.request.query_params.get("data_problem")
+        if data_problem_id:
+            qs = qs.filter(data_problems__id=data_problem_id)
+        return qs.distinct()
+
+    def perform_create(self, serializer):
+        # asignar organizacion desde el usuario autenticado
+        org = getattr(self.request.user, "org_profile", None)
+        if not org:
+            raise ValidationError("Organización del usuario no encontrada.")
+        instance = serializer.save(organizacion=org)
+        # M2M (data_problems y roles) serán manejados por el serializer.create
+
+    # opcional: permitir upsert por id vía PUT/PATCH estándar
+
+
 

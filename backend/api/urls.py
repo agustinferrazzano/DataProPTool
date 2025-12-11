@@ -18,6 +18,7 @@ from .views import (
     AnalisisDataProblemViewSet,
     PersonViewSet,
     EvaluacionDataProblemViewSet,
+    ClasificacionResultViewSet,
 )
 
 
@@ -39,6 +40,7 @@ router.register(r"dataquality", DataQualityViewSet)
 router.register(r"analisisdataproblem", AnalisisDataProblemViewSet, basename="analisisdataproblem")
 router.register(r"personas", PersonViewSet, basename="personas")
 router.register(r"evaluaciondataproblem", EvaluacionDataProblemViewSet, basename="evaluaciondataproblem")
+router.register(r"clasificacion", ClasificacionResultViewSet, basename="clasificacion")
 
 
 urlpatterns = [
