@@ -159,7 +159,7 @@ jobs:
     name: 🚀 Deploy to GitHub Pages
     needs: [frontend-tests, frontend-security]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/preproduccion') && github.event_name == 'push'
     
     # Permisos necesarios para GitHub Pages
     permissions:
@@ -215,11 +215,11 @@ jobs:
         echo ""
         echo "🌐 URLs de la aplicación:"
         echo "📱 Frontend: ${{ steps.deployment.outputs.page_url }}"
-        echo "� Backend API: https://dataproptool-backend.onrender.com"
+        echo "🔧 Backend API: https://dataproptool-backend.onrender.com"
         echo "❤️ Health Check: https://dataproptool-backend.onrender.com/api/health/"
         echo ""
         echo "📊 Resumen del deploy:"
-        echo "  - Branch: dev"
+        echo "  - Branch: ${{ github.ref_name }}"
         echo "  - Commit: ${{ github.sha }}"
         echo "  - Frontend: GitHub Pages (estático)"
         echo "  - Backend: Render.com (API + PostgreSQL)"
@@ -231,6 +231,7 @@ jobs:
         # También crear un archivo con las URLs para referencia
         echo "Frontend: ${{ steps.deployment.outputs.page_url }}" > staging-url.txt
         echo "Backend: https://dataproptool-backend.onrender.com" >> staging-url.txt
+        echo "Branch: ${{ github.ref_name }}" >> staging-url.txt
     
     - name: 📤 Subir URL de staging como artifact
       uses: actions/upload-artifact@v4
