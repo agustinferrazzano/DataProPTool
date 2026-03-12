@@ -1,0 +1,50 @@
+# ============================================
+# BACKEND SPECIFIC - Django
+# ============================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/static/
+/staticfiles/
+/media/
+
+# Environment
+.env
+.env.local
+
+# Testing
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# Local settings
+local_settings.py
+local.py
+
+# Database backups
+*.sql
+*.dump
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Migrations (opcional - depende de tu flujo de trabajo)
+# migrations/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
