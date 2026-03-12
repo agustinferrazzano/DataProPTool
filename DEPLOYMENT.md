@@ -11,8 +11,8 @@
 │  ├─ React + Vite                     ├─ Django REST API    │
 │  ├─ Material-UI                      ├─ PostgreSQL DB      │
 │  ├─ Static hosting                   ├─ Gunicorn server    │
-│  └─ https://sh1zukku.github.io/      └─ dataproptool-      │
-│     DataProPTool/                       backend.onrender.com│
+│  └─ https://agustinferrazzano.       └─ dataproptool-      │
+│     github.io/DataProPTool/             backend.onrender.com│
 │                                                             │
 │                    🔄 COMUNICACIÓN                          │
 │              Frontend ←→ Backend API                        │
@@ -23,7 +23,7 @@
 ## 🚀 **URLs de la Aplicación**
 
 ### **Producción**
-- **🌐 Aplicación Web**: https://sh1zukku.github.io/DataProPTool/
+- **🌐 Aplicación Web**: https://agustinferrazzano.github.io/DataProPTool/
 - **🔧 API Backend**: https://dataproptool-backend.onrender.com
 - **❤️ Health Check**: https://dataproptool-backend.onrender.com/api/health/
 
@@ -91,7 +91,7 @@ DEBUG=False
 ### **CORS Configuration**
 ```python
 CORS_ALLOWED_ORIGINS = [
-    "https://sh1zukku.github.io",
+    "https://agustinferrazzano.github.io",
 ]
 CORS_ALLOW_CREDENTIALS = True
 ```

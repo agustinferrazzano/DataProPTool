@@ -40,7 +40,7 @@ X_FRAME_OPTIONS = 'DENY'
 
 # CORS settings for frontend
 CORS_ALLOWED_ORIGINS = [
-    "https://sh1zukku.github.io",
+    "https://agustinferrazzano.github.io",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

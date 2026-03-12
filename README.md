@@ -1,7 +1,7 @@
 # DataProPTool 🛠️
 
-[![CI Pipeline](https://github.com/Sh1zukku/DataProPTool/actions/workflows/ci.yml/badge.svg)](https://github.com/Sh1zukku/DataProPTool/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/Sh1zukku/DataProPTool/branch/master/graph/badge.svg)](https://codecov.io/gh/Sh1zukku/DataProPTool)
+[![CI Pipeline](https://github.com/agustinferrazzano/DataProPTool/actions/workflows/ci.yml/badge.svg)](https://github.com/agustinferrazzano/DataProPTool/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/agustinferrazzano/DataProPTool/branch/master/graph/badge.svg)](https://codecov.io/gh/agustinferrazzano/DataProPTool)
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
 [![Node Version](https://img.shields.io/badge/node-18.x%20%7C%2020.x-green)](https://nodejs.org/)
 [![Django](https://img.shields.io/badge/django-5.2-darkgreen)](https://www.djangoproject.com/)
@@ -27,7 +27,7 @@ Una herramienta completa para la gestión y análisis de problemas de calidad de
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/Sh1zukku/DataProPTool.git
+git clone https://github.com/agustinferrazzano/DataProPTool.git
 cd DataProPTool
 
 # 2. Backend - Configurar y ejecutar
@@ -646,7 +646,7 @@ Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
 
 Si tienes algún problema o pregunta:
 
-1. Revisa los [Issues](https://github.com/Sh1zukku/DataProPTool/issues) existentes
+1. Revisa los [Issues](https://github.com/agustinferrazzano/DataProPTool/issues) existentes
 2. Crea un nuevo issue con detalles del problema
 3. Proporciona logs y pasos para reproducir el error
 
@@ -693,7 +693,7 @@ python manage.py migrate
 
 ### 📊 URLs de Producción
 
-- **Frontend**: https://sh1zukku.github.io/DataProPTool/
+- **Frontend**: https://agustinferrazzano.github.io/DataProPTool/
 - **Backend API**: https://dataproptool-backend.onrender.com/api/
 - **Health Check**: https://dataproptool-backend.onrender.com/api/health/
 
@@ -701,7 +701,7 @@ python manage.py migrate
 
 - ✅ **MVP Completo**: Funcionalidad básica implementada
 - 🔄 **En Desarrollo**: Mejoras continuas y nuevas características
-- 🎯 **Próximas Características**: Ver [Roadmap](https://github.com/Sh1zukku/DataProPTool/projects)
+- 🎯 **Próximas Características**: Ver [Roadmap](https://github.com/agustinferrazzano/DataProPTool/projects)
 
 ---
 
