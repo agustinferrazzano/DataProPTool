@@ -5,11 +5,11 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
-from .serializers import UserSerializer
+from .serializers import UserSerializer, OrgProfileSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import viewsets
 from rest_framework.viewsets import ViewSet
-from .models import RepositorioSistema, AnalisisDataProblem, SistemaInformacion, HerramientadeAnalisis, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, DataStage, DataQuality, Person, EvaluacionDataProblem, ClasificacionResult
+from .models import OrgProfile, RepositorioSistema, AnalisisDataProblem, SistemaInformacion, HerramientadeAnalisis, Control, ProcesoNegocio, Stakeholder, Departamento, DataProblem, TecnicaIdentificacion, Grupo, DataStage, DataQuality, Person, EvaluacionDataProblem, ClasificacionResult
 from .serializers import (
     RepositorioSistemaSerializer,
     SistemaInformacionSerializer,
@@ -162,6 +162,69 @@ class UserSerializerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return User.objects.filter(org_profile=self.request.user.org_profile)
+
+
+class CurrentOrgProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def _get_profile(self, user):
+        try:
+            return user.org_profile
+        except OrgProfile.DoesNotExist:
+            return None
+
+    def get(self, request):
+        profile = self._get_profile(request.user)
+        if profile is None:
+            return Response({
+                "id": None,
+                "user_id": request.user.id,
+                "username": request.user.username,
+                "email": request.user.email,
+                "nombre": "",
+                "descripcion": "",
+            }, status=status.HTTP_200_OK)
+
+        serializer = OrgProfileSerializer(profile)
+        return Response({
+            "id": profile.id,
+            "user_id": request.user.id,
+            "username": request.user.username,
+            "email": request.user.email,
+            "nombre": serializer.data.get("nombre", ""),
+            "descripcion": serializer.data.get("descripcion", ""),
+        })
+
+    def post(self, request):
+        profile = self._get_profile(request.user)
+        serializer = OrgProfileSerializer(instance=profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        if profile is None:
+            profile = OrgProfile.objects.create(
+                user=request.user,
+                nombre=serializer.validated_data.get("nombre", ""),
+                descripcion=serializer.validated_data.get("descripcion", ""),
+            )
+            status_code = status.HTTP_201_CREATED
+        else:
+            serializer.save()
+            status_code = status.HTTP_200_OK
+
+        return Response({
+            "id": profile.id,
+            "user_id": request.user.id,
+            "username": request.user.username,
+            "email": request.user.email,
+            "nombre": profile.nombre,
+            "descripcion": profile.descripcion,
+        }, status=status_code)
+
+    def patch(self, request):
+        return self.post(request)
+
+    def put(self, request):
+        return self.post(request)
 
 class RegisterUserView(APIView):
     permission_classes = []  # Permitir acceso sin autenticación

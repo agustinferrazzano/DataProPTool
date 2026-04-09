@@ -19,6 +19,7 @@ from .views import (
     PersonViewSet,
     EvaluacionDataProblemViewSet,
     ClasificacionResultViewSet,
+    CurrentOrgProfileView,
     health_check,
 )
 
@@ -46,5 +47,6 @@ router.register(r"clasificacion", ClasificacionResultViewSet, basename="clasific
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('org-profile/', CurrentOrgProfileView.as_view(), name='current_org_profile'),
     path('health/', health_check, name='health_check'),
 ]

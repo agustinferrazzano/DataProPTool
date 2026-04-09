@@ -105,7 +105,7 @@ function Information() {
         <Paper elevation={2} sx={{ p: 4 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Typography variant="h4" color="primary">
-              Dimiención de Calidad
+              Dimención de Calidad
             </Typography>
             {/* Botón de agregar removido */}
           </Stack>

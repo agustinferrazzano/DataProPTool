@@ -8,7 +8,6 @@ import BotonVolverFijo from "../components/BotonVolverFijo";
 
 function GeneralesPage() {
   const [organization, setOrganization] = useState(null);
-  const [orgUserId, setOrgUserId] = useState(null);
   const [draftName, setDraftName] = useState("");
   const [draftDescription, setDraftDescription] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,35 +22,22 @@ function GeneralesPage() {
   const loadOrganization = () => {
     setIsLoading(true);
     api
-      .get("/api/usuarios/")
+      .get("/api/org-profile/")
       .then((response) => {
-        const users = response.data || [];
-        const firstUser = users[0] || null;
-
-        if (!firstUser) {
-          setOrganization(null);
-          setOrgUserId(null);
-          return;
-        }
-
-        const profile = firstUser.org_profile || {};
         const nextOrganization = {
-          nombre: profile.nombre || "",
-          descripcion: profile.descripcion || "",
-          username: firstUser.username || "",
-          email: firstUser.email || "",
-          miembros: users.length,
+          nombre: response.data?.nombre || "",
+          descripcion: response.data?.descripcion || "",
+          username: response.data?.username || "",
+          email: response.data?.email || "",
         };
 
         setOrganization(nextOrganization);
-        setOrgUserId(firstUser.id);
         setDraftName(nextOrganization.nombre);
         setDraftDescription(nextOrganization.descripcion);
       })
       .catch((error) => {
         console.error("Error al obtener la información general:", error);
-        setOrganization(null);
-        setOrgUserId(null);
+        setOrganization({ nombre: "", descripcion: "", username: "", email: "" });
       })
       .finally(() => setIsLoading(false));
   };
@@ -71,32 +57,27 @@ function GeneralesPage() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (!orgUserId) {
-      alert("No se encontró la organización para actualizar.");
-      return;
-    }
-
     api
-      .patch(`/api/usuarios/${orgUserId}/`, {
-        org_profile: {
-          nombre: draftName,
-          descripcion: draftDescription,
-        },
+      .post("/api/org-profile/", {
+        nombre: draftName,
+        descripcion: draftDescription,
       })
       .then((response) => {
-        if (response.status === 200 || response.status === 202) {
+        if (response.status === 200 || response.status === 201 || response.status === 202) {
           setOrganization((prev) => ({
             ...(prev || {}),
             nombre: draftName,
             descripcion: draftDescription,
+            username: response.data?.username || prev?.username || "",
+            email: response.data?.email || prev?.email || "",
           }));
           setIsModalOpen(false);
-          alert("Datos generales actualizados correctamente.");
+          alert("Datos generales cargados correctamente.");
         }
       })
       .catch((error) => {
         console.error("Error al actualizar los datos generales:", error.response?.data || error.message);
-        alert("No se pudieron actualizar los datos generales.");
+        alert("No se pudieron cargar los datos generales.");
       });
   };
 
@@ -117,7 +98,7 @@ function GeneralesPage() {
           ) : organization ? (
             <Box my={4}>
               <Typography variant="h6" color="primary">
-                Información de la organización
+                Datos generales cargados
               </Typography>
               <List>
                 <ListItem divider>
@@ -151,28 +132,25 @@ function GeneralesPage() {
                     </Typography>
                   </Stack>
                 </ListItem>
-                <ListItem>
-                  <Stack spacing={0.5} width="100%">
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Usuarios vinculados
-                    </Typography>
-                    <Typography variant="body1">
-                      {organization.miembros}
-                    </Typography>
-                  </Stack>
-                </ListItem>
               </List>
 
               <Stack direction="row" spacing={2} justifyContent="center" mt={3}>
                 <Button variant="contained" color="primary" onClick={handleOpenModal}>
-                  Editar Datos Generales
+                  Cargar / Actualizar Datos Generales
                 </Button>
               </Stack>
             </Box>
           ) : (
-            <Typography color="text.secondary" align="center" sx={{ my: 6 }}>
-              No se encontró información general para mostrar.
-            </Typography>
+            <Box my={4}>
+              <Typography color="text.secondary" align="center" sx={{ my: 3 }}>
+                Aún no hay datos generales cargados.
+              </Typography>
+              <Stack direction="row" spacing={2} justifyContent="center">
+                <Button variant="contained" color="primary" onClick={handleOpenModal}>
+                  Cargar Datos Generales
+                </Button>
+              </Stack>
+            </Box>
           )}
         </Paper>
       </Container>
@@ -183,8 +161,8 @@ function GeneralesPage() {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}
-        title="Editar Datos Generales"
-        submitText="Guardar"
+        title="Cargar Datos Generales"
+        submitText="Cargar"
         cancelText="Cancelar"
       >
         <TextField
