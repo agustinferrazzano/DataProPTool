@@ -7,6 +7,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import HomeUser from './pages/HomeUser';
 import DatosOrgPage from './pages/DatosOrgPage';
+import GeneralesPage from './pages/GeneralesPage';
 import ControlesPage from './pages/Controlespage';
 import RepositorioPage from './pages/RepositorioPage';
 import SistemasPage from './pages/SistemasPage';
@@ -47,6 +48,8 @@ function App() {
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
         <Route path="/datos-org" element={<ProtectedRoute><DatosOrgPage /></ProtectedRoute>} />
+        <Route path="/generales" element={<ProtectedRoute><GeneralesPage /></ProtectedRoute>} />
+        <Route path="/pageB1" element={<ProtectedRoute><Navigate to="/generales" replace /></ProtectedRoute>} />
         <Route path="/controles" element={<ProtectedRoute><ControlesPage /></ProtectedRoute>} />
         <Route path="/repositorio" element={<ProtectedRoute><RepositorioPage /></ProtectedRoute>} />
         <Route path="/sistemas" element={<ProtectedRoute><SistemasPage/></ProtectedRoute>} />

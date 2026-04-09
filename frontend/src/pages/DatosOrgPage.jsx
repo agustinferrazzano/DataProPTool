@@ -21,7 +21,7 @@ function DatosOrgPage() {
             <Container maxWidth="sm" sx={{ mt: 6, mb: 4 }}>
                 <Paper elevation={2} sx={{ p: 4, position: "relative", minHeight: 400, mt: 3 }}>  
                     <Stack spacing={2} alignItems="center" mt={2} justifyContent="center">
-                        <NavBoton to="/pageB1" variant="contained" color="primary" sx={{ minWidth: 320, mt: 4 }}>
+                        <NavBoton to="/generales" variant="contained" color="primary" sx={{ minWidth: 320, mt: 4 }}>
                             Generales
                         </NavBoton>
                         <NavBoton to="/Controles" variant="contained" color="primary" sx={{ minWidth: 320 }}>

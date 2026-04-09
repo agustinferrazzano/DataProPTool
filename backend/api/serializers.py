@@ -188,6 +188,33 @@ class UserSerializer(serializers.ModelSerializer):
         )
         return user
 
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('org_profile', None)
+        password = validated_data.pop('password', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+
+        if profile_data is not None:
+            org_profile = getattr(instance, 'org_profile', None)
+            if org_profile is None:
+                OrgProfile.objects.create(
+                    user=instance,
+                    nombre=profile_data.get("nombre", ''),
+                    descripcion=profile_data.get("descripcion", ''),
+                )
+            else:
+                org_profile.nombre = profile_data.get("nombre", org_profile.nombre)
+                org_profile.descripcion = profile_data.get("descripcion", org_profile.descripcion)
+                org_profile.save()
+
+        return instance
+
 class TecnicaIdentificacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TecnicaIdentificacion
